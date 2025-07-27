@@ -1,8 +1,10 @@
 Vistas\GenerarReceta$1.class
 Vistas\DiagnosticoTratamiento$1.class
 Vistas\AgendarCita$4.class
+com\mycompany\gestion\hospitalaria\GestionHospitalaria.class
 Vistas\DiagnosticoTratamiento$2.class
 Vistas\AgendarCita$3.class
+Vistas\DiagnosticoTratamiento$5.class
 Vistas\GenerarReceta$2.class
 Vistas\AgendarCita.class
 Vistas\GenerarReceta$3.class
@@ -10,6 +12,7 @@ Vistas\DiagnosticoTratamiento.class
 Vistas\GenerarReceta.class
 com\mycompany\gestion\hospitalaria\SsitemaMedico.class
 Vistas\AgendarCita$1.class
+Vistas\DiagnosticoTratamiento$4.class
 Vistas\DiagnosticoTratamiento$3.class
 Vistas\AgendarCita$2.class
 conexion\ConexionBD.class
