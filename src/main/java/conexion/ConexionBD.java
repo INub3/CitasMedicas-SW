@@ -33,5 +33,17 @@ public class ConexionBD {
 
         return conectar;
     }
-
+    
+    public void cerrarConexion(Connection conn) {
+    if (conn != null) {
+        try {
+            conn.close();
+            // Opcional: Mostrar mensaje de éxito
+            // JOptionPane.showMessageDialog(null, "Conexión cerrada correctamente.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error al cerrar la conexión:\n" + e.toString());
+        }
+    }
+}
+//
 }
