@@ -4,13 +4,15 @@
  */
 package Vistas;
 
-import conexion.ConexionBD;
+import conexion.ConexionBD; // Asegúrate de que esta importación sea correcta
 
 import java.sql.*;
 import javax.swing.*;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfWriter;
 import java.io.FileOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -18,14 +20,36 @@ import java.io.FileOutputStream;
  */
 public class GenerarReceta extends javax.swing.JFrame {
 
-    private int idPaciente = 1; // o recibirlo desde otro formulario
-    private String nombrePaciente = "Paciente de Prueba";
-
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GenerarReceta.class.getName());
+    // Variable para almacenar la cédula del paciente, recibida desde otro formulario
+    private String cedulaPaciente;
+    private static final Logger logger = Logger.getLogger(GenerarReceta.class.getName());
 
     /**
-     * Creates new form GenerarReceta
+     * Constructor principal para GenerarReceta.
+     *
+     * @param cedulaPaciente La cédula del paciente para quien se generará la
+     * receta.
      */
+    public GenerarReceta(String cedulaPaciente) {
+        this.cedulaPaciente = cedulaPaciente; // Asigna la cédula recibida
+        initComponents();
+        cargarMedicamentosDesdeBD();
+        // Actualiza la etiqueta del nombre del paciente al iniciar el formulario
+        lblNombrePaciente.setText("Paciente: " + obtenerNombrePaciente(this.cedulaPaciente));
+        this.setLocationRelativeTo(null); // Centra la ventana en la pantalla
+    }
+
+    /**
+     * Constructor por defecto (para pruebas o si se llama sin parámetros). En
+     * un entorno real, siempre se debería pasar la cédula del paciente.
+     */
+    public GenerarReceta() {
+        this("CEDULA_POR_DEFECTO"); // Cédula por defecto para evitar NullPointerException
+        lblNombrePaciente.setText("Paciente: (Cédula no especificada)");
+        this.setLocationRelativeTo(null); // Centra la ventana en la pantalla
+    }
+
+    /*
     public GenerarReceta() {
         initComponents();
         cargarMedicamentosDesdeBD();
@@ -33,7 +57,7 @@ public class GenerarReceta extends javax.swing.JFrame {
     }
     //obtenerNombrePaciente();
     //descontarMedicamentoDeInventario();
-
+     */
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -51,11 +75,9 @@ public class GenerarReceta extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        cbMedicamentos.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Generar Receta Medica");
 
         txtDosis.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -76,13 +98,12 @@ public class GenerarReceta extends javax.swing.JFrame {
             }
         });
 
-        lblNombrePaciente.setText("Nombre Paciente");
+        lblNombrePaciente.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblNombrePaciente.setText("Paciente:");
 
         jLabel2.setText("Dosis");
 
         jLabel3.setText("Frecuencia");
-
-        jButton1.setText("jButton1");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -90,26 +111,18 @@ public class GenerarReceta extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(163, 163, 163)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel2)
+                    .addComponent(cbMedicamentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtDosis)
+                    .addComponent(txtFrecuencia, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblNombrePaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel2)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(cbMedicamentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(40, 40, 40)
-                                    .addComponent(jButton1))
-                                .addComponent(txtDosis)
-                                .addComponent(txtFrecuencia, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(91, 91, 91)
-                                .addComponent(btnImprimirReceta))
-                            .addComponent(jLabel4))
-                        .addContainerGap(168, Short.MAX_VALUE))))
+                        .addGap(91, 91, 91)
+                        .addComponent(btnImprimirReceta))
+                    .addComponent(jLabel4)
+                    .addComponent(lblNombrePaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(168, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -118,19 +131,17 @@ public class GenerarReceta extends javax.swing.JFrame {
                 .addComponent(lblNombrePaciente)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cbMedicamentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
-                .addGap(28, 28, 28)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                .addComponent(cbMedicamentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(29, 29, 29)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(txtDosis, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel3)
                 .addGap(5, 5, 5)
-                .addComponent(txtFrecuencia, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(47, 47, 47)
+                .addComponent(txtFrecuencia, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(44, 44, 44)
                 .addComponent(btnImprimirReceta)
                 .addGap(120, 120, 120))
         );
@@ -153,11 +164,17 @@ public class GenerarReceta extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
+    /**
+     * Método principal para ejecutar el formulario (solo para pruebas). En una
+     * aplicación real, este formulario sería llamado desde otro.
+     *
+     * @param args Argumentos de línea de comandos.
+     */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+        /* Establecer el Look and Feel de Nimbus */
+        //<editor-fold defaultstate="collapsed" desc=" Código de configuración del Look and Feel (opcional) ">
+        /* Si Nimbus (introducido en Java SE 6) no está disponible, mantente con el Look and Feel por defecto.
+         * Para más detalles, consulta http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -165,23 +182,44 @@ public class GenerarReceta extends javax.swing.JFrame {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
+                // Si no se encuentra Nimbus, se usa el Look and Feel por defecto del sistema
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            logger.log(Level.SEVERE, "Error al configurar el Look and Feel", ex);
+        }
+        //</editor-fold>
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+                // Si no se encuentra Nimbus, se usa el Look and Feel por defecto del sistema
+            }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            logger.log(Level.SEVERE, "Error al configurar el Look and Feel", ex);
         }
         //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new GenerarReceta().setVisible(true));
+        /* Crear y mostrar el formulario */
+ /* Crear y mostrar el formulario */
+        java.awt.EventQueue.invokeLater(() -> new GenerarReceta("1755625660").setVisible(true)); // Cédula de prueba (¡Cambia por una cédula real de tu DB!)
     }
 
-    /////////////////////////////////////////////////////////////
+    /**
+     * Carga los nombres de los medicamentos con stock disponible desde la base
+     * de datos y los añade al JComboBox.
+     */
     private void cargarMedicamentosDesdeBD() {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
+        if (conn == null) {
+            // El mensaje de error ya se mostró en establecerConexion()
+            return;
+        }
 
         try {
-            String sql = "SELECT nombre FROM Medicamentos WHERE stock > 0";
+            String sql = "SELECT nombre FROM Medicamento WHERE stock > 0 ORDER BY nombre ASC"; // Corregido nombre de tabla
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
 
@@ -191,95 +229,149 @@ public class GenerarReceta extends javax.swing.JFrame {
             }
             cbMedicamentos.setModel(model);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error al cargar medicamentos: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar medicamentos: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al cargar medicamentos", ex);
+        } finally {
+            conexion.cerrarConexion(conn); // Cierra la conexión
         }
     }
 
-    /////////////////////////////////////////////////////////
+    /**
+     * Genera un archivo PDF con la receta médica.
+     */
     private void generarPDFReceta() {
-        String medicamento = cbMedicamentos.getSelectedItem().toString();
-        String dosis = txtDosis.getText();
-        String frecuencia = txtFrecuencia.getText();
+        String medicamento = (String) cbMedicamentos.getSelectedItem();
+        String dosis = txtDosis.getText().trim();
+        String frecuencia = txtFrecuencia.getText().trim();
 
-        if (dosis.isEmpty() || frecuencia.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Complete todos los campos");
+        if (medicamento == null || medicamento.isEmpty() || dosis.isEmpty() || frecuencia.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione un medicamento y complete todos los campos (Dosis, Frecuencia).", "Campos Incompletos", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        Document document = new Document();
         try {
-            Document document = new Document();
-            PdfWriter.getInstance(document, new FileOutputStream("Receta_" + idPaciente + ".pdf"));
+            // Usa la cédula del paciente para el nombre del archivo PDF
+            PdfWriter.getInstance(document, new FileOutputStream("Receta_" + cedulaPaciente + ".pdf"));
             document.open();
 
-            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+            // Título
+            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.BLUE);
             Paragraph titulo = new Paragraph("RECETA MÉDICA", fontTitulo);
             titulo.setAlignment(Element.ALIGN_CENTER);
             document.add(titulo);
 
-            document.add(new Paragraph(" "));
-            document.add(new Paragraph("Paciente: " + obtenerNombrePaciente(idPaciente)));
-            document.add(new Paragraph("Fecha: " + new java.util.Date().toString()));
+            document.add(new Paragraph(" ")); // Espacio en blanco
+
+            // Información del paciente y fecha
+            Font fontNormal = FontFactory.getFont(FontFactory.HELVETICA, 12);
+            document.add(new Paragraph("Paciente: " + obtenerNombrePaciente(cedulaPaciente), fontNormal));
+            document.add(new Paragraph("Fecha: " + new java.util.Date().toString(), fontNormal));
 
             document.add(new Paragraph(" "));
-            document.add(new Paragraph("Medicamento: " + medicamento));
-            document.add(new Paragraph("Dosis: " + dosis));
-            document.add(new Paragraph("Frecuencia: " + frecuencia));
+
+            // Detalles del medicamento
+            Font fontMedicamento = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.BLACK);
+            document.add(new Paragraph("Medicamento: " + medicamento, fontMedicamento));
+            document.add(new Paragraph("Dosis: " + dosis, fontNormal));
+            document.add(new Paragraph("Frecuencia: " + frecuencia, fontNormal));
 
             document.add(new Paragraph(" "));
-            document.add(new Paragraph("Instrucciones:"));
-            document.add(new Paragraph("- No exceder la dosis recomendada"));
-            document.add(new Paragraph("- Consultar en caso de efectos adversos"));
+
+            // Instrucciones generales
+            document.add(new Paragraph("Instrucciones Adicionales:", fontMedicamento));
+            document.add(new Paragraph("- No exceder la dosis recomendada.", fontNormal));
+            document.add(new Paragraph("- Consultar a su médico en caso de efectos adversos.", fontNormal));
+            document.add(new Paragraph("- Mantener fuera del alcance de los niños.", fontNormal));
 
             document.add(new Paragraph(" "));
             document.add(new Paragraph("Firma del médico: _________________________"));
 
             document.close();
-            JOptionPane.showMessageDialog(this, "Receta generada como: Receta_" + idPaciente + ".pdf");
+            JOptionPane.showMessageDialog(this, "Receta generada exitosamente como: Receta_" + cedulaPaciente + ".pdf", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 
+            // Descontar medicamento del inventario después de generar la receta
             descontarMedicamentoDeInventario(medicamento);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al generar PDF: " + ex.getMessage());
+
+        } catch (DocumentException | java.io.IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error al generar PDF: " + ex.getMessage(), "Error al Generar PDF", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al generar PDF de receta", ex);
+        } finally {
+            if (document.isOpen()) {
+                document.close();
+            }
         }
     }
 
-    //////////////////////////////////////////////////////////
-    
-   private String obtenerNombrePaciente(int idPaciente) {
+    /**
+     * Obtiene el nombre completo del paciente desde la base de datos usando su
+     * cédula.
+     *
+     * @param cedula La cédula del paciente.
+     * @return El nombre completo del paciente o un mensaje de
+     * error/desconocido.
+     */
+    private String obtenerNombrePaciente(String cedula) {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
+        if (conn == null) {
+            return "Error de conexión";
+        }
 
         try {
-            String sql = "SELECT nombre FROM Pacientes WHERE id_paciente = ?";
+            // Corregido: Se busca por 'cedula' y se obtienen 'nombres' y 'apellidos'
+            String sql = "SELECT nombres, apellidos FROM Paciente WHERE cedula = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, idPaciente);
+            stmt.setString(1, cedula); // Establece el parámetro String
             ResultSet rs = stmt.executeQuery();
 
-            return rs.next() ? rs.getString("nombre") : "Paciente desconocido";
+            if (rs.next()) {
+                return rs.getString("nombres").trim() + " " + rs.getString("apellidos").trim();
+            } else {
+                return "Paciente desconocido (Cédula: " + cedula + ")";
+            }
         } catch (SQLException ex) {
-            return "Error al cargar datos";
+            logger.log(Level.SEVERE, "Error al obtener nombre del paciente con cédula: " + cedula, ex);
+            return "Error al cargar datos del paciente";
+        } finally {
+            conexion.cerrarConexion(conn);
         }
     }
 
-    ///////////////////////////////////////////////////////////////
+    /**
+     * Descuenta una unidad del stock del medicamento en la base de datos.
+     *
+     * @param medicamento El nombre del medicamento a descontar.
+     */
     private void descontarMedicamentoDeInventario(String medicamento) {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
+        if (conn == null) {
+            return;
+        }
 
         try {
-            String sql = "UPDATE Medicamentos SET stock = stock - 1 WHERE nombre = ?";
+            String sql = "UPDATE Medicamento SET stock = stock - 1 WHERE nombre = ?"; // Corregido nombre de tabla
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, medicamento);
-            stmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                // Opcional: Mostrar mensaje de éxito o actualizar la UI si es necesario
+                // JOptionPane.showMessageDialog(this, "Stock de " + medicamento + " actualizado.");
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo actualizar el stock de " + medicamento + ". Puede que el medicamento no exista o el stock ya sea 0.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error al actualizar inventario: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al actualizar inventario: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al descontar medicamento del inventario", ex);
+        } finally {
+            conexion.cerrarConexion(conn);
         }
     }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnImprimirReceta;
     private javax.swing.JComboBox<String> cbMedicamentos;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
