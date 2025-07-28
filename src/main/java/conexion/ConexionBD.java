@@ -14,10 +14,10 @@ public class ConexionBD {
     Connection conectar = null;
 
     // Parámetros de conexión
-    String usuario = "isw1proyecto";
-    String contraseña = "stiv";
-    String bd = "dbproyectoISW";
-    String ip = "localhost";
+    String usuario = "sa";
+    String contraseña = "P@ssw0rd";
+    String bd = "polisalud";
+    String ip = "IV4SH";
     String puerto = "1433";
 
     String cadena = "jdbc:sqlserver://" + ip + ":" + puerto + ";databaseName=" + bd + ";encrypt=false";
