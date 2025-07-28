@@ -33,7 +33,9 @@ public class AgendarCita extends javax.swing.JFrame {
         cargarEspecialidadesDisponibles(); 
         dateChooser.setMinSelectableDate(new Date());
         ((JTextField) dateChooser.getDateEditor().getUiComponent()).setEditable(false);
+        
     }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -143,7 +145,11 @@ public class AgendarCita extends javax.swing.JFrame {
             }
         });
 
-        cmbMedico.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cmbMedico.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmbMedicoActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -242,9 +248,10 @@ public class AgendarCita extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton_BuscarHorariosActionPerformed
 
     private void cmbEspecialidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbEspecialidadActionPerformed
-        // TODO add your handling code here:
-        //cargarMedicos();
-        cargarEspecialidadesDisponibles();
+        String especialidadSeleccionada = (String) cmbEspecialidad.getSelectedItem();
+        if (especialidadSeleccionada != null) {
+            cargarMedicosPorEspecialidad(especialidadSeleccionada);
+        }
     }//GEN-LAST:event_cmbEspecialidadActionPerformed
 
     private void jButton_AgendarCitaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_AgendarCitaActionPerformed
@@ -286,6 +293,10 @@ public class AgendarCita extends javax.swing.JFrame {
          
     }//GEN-LAST:event_jButton_AgendarCitaActionPerformed
 
+    private void cmbMedicoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbMedicoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cmbMedicoActionPerformed
+
     
 //    private void cargarMedicos() {
 //        String especialidad = (String) cmbEspecialidad.getSelectedItem();
@@ -309,38 +320,39 @@ public class AgendarCita extends javax.swing.JFrame {
 //        }
 //    }
 //    
-    private void cargarMedicamentosDisponibles() {
+    private void cargarMedicosPorEspecialidad(String especialidad) {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
 
         try {
-            String sql = "SELECT nombres FROM Doctor";
+            String sql = "SELECT nombres FROM Doctor WHERE especialidad = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, especialidad);
             ResultSet rs = pstmt.executeQuery();
 
             DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
             while (rs.next()) {
-                model.addElement(rs.getString("nombres"));
-            }
+            model.addElement(rs.getString("nombres"));
+        }
             cmbMedico.setModel(model);
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error al cargar Medicos disponibles: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
-            logger.log(Level.SEVERE, "Error al cargar medicamentos disponibles", ex);
+            JOptionPane.showMessageDialog(this, "Error al cargar médicos: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al cargar médicos por especialidad", ex);
         } finally {
-            conexion.cerrarConexion(conn);
+        conexion.cerrarConexion(conn);
         }
     }
     
-        private void cargarEspecialidadesDisponibles() {
+    private void cargarEspecialidadesDisponibles() {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
         if (conn == null) {
-            return; // Error de conexión ya manejado
+            return;
         }
 
         try {
-            String sql = "SELECT especialidad FROM Doctor";
+            String sql = "SELECT DISTINCT especialidad FROM Doctor";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
@@ -349,12 +361,10 @@ public class AgendarCita extends javax.swing.JFrame {
                 model.addElement(rs.getString("especialidad"));
             }
             cmbEspecialidad.setModel(model);
-            
-            cargarMedicamentosDisponibles();
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error al cargar especialidad: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
-            logger.log(Level.SEVERE, "Error al cargar especialidad", ex);
+            JOptionPane.showMessageDialog(this, "Error al cargar especialidades: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al cargar especialidades", ex);
         } finally {
             conexion.cerrarConexion(conn);
         }

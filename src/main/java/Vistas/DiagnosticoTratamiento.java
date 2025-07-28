@@ -221,7 +221,7 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
                     .addComponent(btnGuardarDiagnostico)
                     .addComponent(btnGenerarReceta)
                     .addComponent(btnVerHistorial))
-                .addContainerGap(178, Short.MAX_VALUE))
+                .addContainerGap(31, Short.MAX_VALUE))
         );
 
         pack();
