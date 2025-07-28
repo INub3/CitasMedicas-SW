@@ -1,8 +1,15 @@
 package Vistas;
 
+import conexion.ConexionBD;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  *
  * @author Erick
@@ -19,10 +26,11 @@ public class AgendarCita extends javax.swing.JFrame {
     /**
      * Creates new form AgendarCita
      */
+    private static final Logger logger = Logger.getLogger(DiagnosticoTratamiento.class.getName());
     
     public AgendarCita() {
         initComponents();
-        cargarMedicos(); 
+        cargarEspecialidadesDisponibles(); 
         dateChooser.setMinSelectableDate(new Date());
         ((JTextField) dateChooser.getDateEditor().getUiComponent()).setEditable(false);
     }
@@ -52,6 +60,9 @@ public class AgendarCita extends javax.swing.JFrame {
         tablaHorarios = new javax.swing.JTable();
         jButton_AgendarCita = new javax.swing.JButton();
         cmbMedico = new javax.swing.JComboBox<>();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        jMenu2 = new javax.swing.JMenu();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -194,8 +205,16 @@ public class AgendarCita extends javax.swing.JFrame {
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jButton_AgendarCita)
-                .addContainerGap(78, Short.MAX_VALUE))
+                .addContainerGap(55, Short.MAX_VALUE))
         );
+
+        jMenu1.setText("Agendar cita");
+        jMenuBar1.add(jMenu1);
+
+        jMenu2.setText("Diagnostico");
+        jMenuBar1.add(jMenu2);
+
+        setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -224,7 +243,8 @@ public class AgendarCita extends javax.swing.JFrame {
 
     private void cmbEspecialidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbEspecialidadActionPerformed
         // TODO add your handling code here:
-        cargarMedicos();
+        //cargarMedicos();
+        cargarEspecialidadesDisponibles();
     }//GEN-LAST:event_cmbEspecialidadActionPerformed
 
     private void jButton_AgendarCitaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_AgendarCitaActionPerformed
@@ -267,28 +287,78 @@ public class AgendarCita extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton_AgendarCitaActionPerformed
 
     
-    private void cargarMedicos() {
-        String especialidad = (String) cmbEspecialidad.getSelectedItem();
-        cmbMedico.removeAllItems();
+//    private void cargarMedicos() {
+//        String especialidad = (String) cmbEspecialidad.getSelectedItem();
+//        cmbMedico.removeAllItems();
+//
+//        switch (especialidad) {
+//            case "Cardiología":
+//                cmbMedico.addItem("Dr. Carlos Pérez");
+//                cmbMedico.addItem("Dra. Ana Martínez");
+//                break;
+//            case "Dermatología":
+//                cmbMedico.addItem("Dra. Laura Gómez");
+//                break;
+//            case "Pediatría":
+//                cmbMedico.addItem("Dr. Luis Fernández");
+//                cmbMedico.addItem("Dra. María López");
+//                break;
+//            case "General":
+//                cmbMedico.addItem("Dr. José Ramírez");
+//                break;
+//        }
+//    }
+//    
+    private void cargarMedicamentosDisponibles() {
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
 
-        switch (especialidad) {
-            case "Cardiología":
-                cmbMedico.addItem("Dr. Carlos Pérez");
-                cmbMedico.addItem("Dra. Ana Martínez");
-                break;
-            case "Dermatología":
-                cmbMedico.addItem("Dra. Laura Gómez");
-                break;
-            case "Pediatría":
-                cmbMedico.addItem("Dr. Luis Fernández");
-                cmbMedico.addItem("Dra. María López");
-                break;
-            case "General":
-                cmbMedico.addItem("Dr. José Ramírez");
-                break;
+        try {
+            String sql = "SELECT nombres FROM Doctor";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+
+            DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+            while (rs.next()) {
+                model.addElement(rs.getString("nombres"));
+            }
+            cmbMedico.setModel(model);
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar Medicos disponibles: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al cargar medicamentos disponibles", ex);
+        } finally {
+            conexion.cerrarConexion(conn);
         }
     }
     
+        private void cargarEspecialidadesDisponibles() {
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+        if (conn == null) {
+            return; // Error de conexión ya manejado
+        }
+
+        try {
+            String sql = "SELECT especialidad FROM Doctor";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+
+            DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+            while (rs.next()) {
+                model.addElement(rs.getString("especialidad"));
+            }
+            cmbEspecialidad.setModel(model);
+            
+            cargarMedicamentosDisponibles();
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar especialidad: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al cargar especialidad", ex);
+        } finally {
+            conexion.cerrarConexion(conn);
+        }
+    }
     
     private void buscarHorarios() {
         String medico = (String) cmbMedico.getSelectedItem();
@@ -426,6 +496,9 @@ public class AgendarCita extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
