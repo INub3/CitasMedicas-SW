@@ -22,7 +22,9 @@ public class AgendarCita extends javax.swing.JFrame {
     
     public AgendarCita() {
         initComponents();
-        cargarMedicos();  
+        cargarMedicos(); 
+        dateChooser.setMinSelectableDate(new Date());
+        ((JTextField) dateChooser.getDateEditor().getUiComponent()).setEditable(false);
     }
 
     /**
@@ -211,6 +213,13 @@ public class AgendarCita extends javax.swing.JFrame {
 
     private void jButton_BuscarHorariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_BuscarHorariosActionPerformed
         buscarHorarios();
+        String cedula = txtCedulaPaciente.getText().trim();
+        
+        if (validarCedula(cedula)) {
+        JOptionPane.showMessageDialog(this, "Cédula válida.");
+        } else {
+            JOptionPane.showMessageDialog(this, "Cédula inválida. Debe tener 10 dígitos numéricos y ser ecuatoriana.","CEDULA INVALIDA" ,JOptionPane.WARNING_MESSAGE);
+        }
     }//GEN-LAST:event_jButton_BuscarHorariosActionPerformed
 
     private void cmbEspecialidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbEspecialidadActionPerformed
@@ -323,14 +332,54 @@ public class AgendarCita extends javax.swing.JFrame {
         // pero no hacen daño si quieres asegurarte.
         if (jScrollPane2 != null) {
             jScrollPane2.setVisible(true);
+        }
+    
+        // Estos son para asegurar que la UI se redibuje correctamente.
+        // Solo son necesarios si has cambiado la visibilidad o tamaño del componente.
+        revalidate(); // Recalcula el layout de los componentes
+        repaint();    // Redibuja los componentes
     }
     
-    // Estos son para asegurar que la UI se redibuje correctamente.
-    // Solo son necesarios si has cambiado la visibilidad o tamaño del componente.
-    revalidate(); // Recalcula el layout de los componentes
-    repaint();    // Redibuja los componentes
-}
-    
+    public boolean validarCedula(String cedula) {
+        // 1. Verifica longitud y solo números
+        if (cedula == null || !cedula.matches("\\d{10}")) {
+            return false;
+        }
+
+        // 2. Verifica provincia (01–24 o 30 para exterior)
+        int provincia = Integer.parseInt(cedula.substring(0, 2));
+        if (!((provincia >= 1 && provincia <= 24) || provincia == 30)) {
+            return false;
+        }
+
+        // 3. Verifica el tercer dígito (debe ser < 6 para cédula natural)
+        int tercerDigito = Character.getNumericValue(cedula.charAt(2));
+        if (tercerDigito >= 6) {
+            return false;
+        }
+
+        // 4. Aplica el algoritmo del módulo 10 para obtener el dígito verificador
+        int suma = 0;
+        for (int i = 0; i < 9; i++) {
+            int num = Character.getNumericValue(cedula.charAt(i));
+            // Los dígitos en posiciones impares (0,2,4...) se multiplican por 2
+            if (i % 2 == 0) {
+                num *= 2;
+                if (num > 9) num -= 9;
+            }
+            suma += num;
+        }
+
+        // Calcula el dígito verificador
+        int digitoVerificadorCalculado = (10 - (suma % 10)) % 10;
+
+        // Obtiene el último dígito de la cédula
+        int digitoVerificadorReal = Character.getNumericValue(cedula.charAt(9));
+
+        // 5. Compara
+        return digitoVerificadorCalculado == digitoVerificadorReal;
+    }
+
     
     /**
      * @param args the command line arguments
