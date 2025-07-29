@@ -4,13 +4,27 @@
  */
 package Vistas;
 
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 import conexion.ConexionBD;
-import java.sql.*;
+import java.io.FileOutputStream;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.util.Vector; // Para el modelo de la tabla
+import java.util.List;
+import java.util.ArrayList;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
+import java.sql.*;
+import javax.swing.JOptionPane;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class DiagnosticoTratamiento extends javax.swing.JFrame {
 
@@ -48,6 +62,164 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
         this(1, "1755625660");
     }
 
+    private void generarPDFReceta() {
+    javax.swing.table.TableModel modelo = tblMedicamentosAsignados.getModel();
+
+    // Listas para cada columna
+    List<String> medicamentos = new ArrayList<>();
+    List<Integer> cantidades = new ArrayList<>();
+    List<String> dosis = new ArrayList<>();
+    List<String> frecuencias = new ArrayList<>();
+
+    // Extraer datos (asumo que Cantidad está en columna 1, no 0, porque medicamento está en 0)
+    for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+        medicamentos.add(String.valueOf(modelo.getValueAt(fila, 0)));
+        // Manejar cantidad como entero (por si viene como String u Object)
+        Object cantObj = modelo.getValueAt(fila, 1);
+        int cantidad = 0;
+        try {
+            cantidad = Integer.parseInt(cantObj.toString());
+        } catch (NumberFormatException e) {
+            cantidad = 0; // o maneja error si quieres
+        }
+        cantidades.add(cantidad);
+        dosis.add(String.valueOf(modelo.getValueAt(fila, 2)));
+        frecuencias.add(String.valueOf(modelo.getValueAt(fila, 3)));
+    }
+
+    String cedula = jTCedula.getText().trim();
+    
+    Document document = new Document();
+    try {
+        PdfWriter.getInstance(document, new FileOutputStream("Receta_" + cedula + ".pdf"));
+        document.open();
+
+        Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.BLUE);
+        Paragraph titulo = new Paragraph("RECETA MÉDICA", fontTitulo);
+        titulo.setAlignment(Element.ALIGN_CENTER);
+        document.add(titulo);
+        document.add(new Paragraph(" ")); // espacio
+
+        Font fontNormal = FontFactory.getFont(FontFactory.HELVETICA, 12);
+        document.add(new Paragraph("Paciente: " + cedula, fontNormal));
+        document.add(new Paragraph("Paciente: " + obtenerNombrePaciente(cedula), fontNormal));
+        document.add(new Paragraph("Fecha: " + new java.util.Date().toString(), fontNormal));
+        document.add(new Paragraph(" "));
+
+        // Crear tabla con 4 columnas
+        PdfPTable tabla = new PdfPTable(4);
+        tabla.setWidthPercentage(100);
+        tabla.setSpacingBefore(10f);
+        tabla.setSpacingAfter(10f);
+
+        // Encabezados
+        Font fontEncabezado = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14);
+        Stream.of("Medicamento", "Cantidad", "Dosis", "Frecuencia")
+              .forEach(header -> {
+                  PdfPCell celda = new PdfPCell(new Phrase(header, fontEncabezado));
+                  celda.setHorizontalAlignment(Element.ALIGN_CENTER);
+                  celda.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                  tabla.addCell(celda);
+              });
+
+        // Filas de datos
+        for (int i = 0; i < medicamentos.size(); i++) {
+            tabla.addCell(new PdfPCell(new Phrase(medicamentos.get(i), fontNormal)));
+            tabla.addCell(new PdfPCell(new Phrase(String.valueOf(cantidades.get(i)), fontNormal)));
+            tabla.addCell(new PdfPCell(new Phrase(dosis.get(i), fontNormal)));
+            tabla.addCell(new PdfPCell(new Phrase(frecuencias.get(i), fontNormal)));
+        }
+
+        document.add(tabla);
+
+        document.add(new Paragraph("Instrucciones Adicionales:", fontEncabezado));
+        document.add(new Paragraph("- No exceder la dosis recomendada.", fontNormal));
+        document.add(new Paragraph("- Consultar a su médico en caso de efectos adversos.", fontNormal));
+        document.add(new Paragraph("- Mantener fuera del alcance de los niños.", fontNormal));
+        document.add(new Paragraph(" "));
+        document.add(new Paragraph("Firma del médico: _________________________"));
+
+        document.close();
+
+        JOptionPane.showMessageDialog(this, "Receta generada exitosamente como: Receta_" + cedulaPaciente + ".pdf",
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+        // Descontar medicamentos del inventario con las cantidades correctas
+        descontarMedicamentoDeInventario(medicamentos, cantidades);
+
+    } catch (DocumentException | java.io.IOException ex) {
+        JOptionPane.showMessageDialog(this, "Error al generar PDF: " + ex.getMessage(),
+                "Error al Generar PDF", JOptionPane.ERROR_MESSAGE);
+        logger.log(Level.SEVERE, "Error al generar PDF de receta", ex);
+    } finally {
+        if (document.isOpen()) {
+            document.close();
+        }
+    }
+}
+        
+    private void descontarMedicamentoDeInventario(List<String> medicamentos, List<Integer> cantidades) {
+    ConexionBD conexion = new ConexionBD();
+    Connection conn = conexion.establecerConexion();
+    if (conn == null) {
+        return;
+    }
+
+    try {
+        String sql = "UPDATE Medicamento SET stock = stock - ? WHERE nombre = ? AND stock >= ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+
+        for (int i = 0; i < medicamentos.size(); i++) {
+            String med = medicamentos.get(i);
+            int cant = cantidades.get(i);
+            if (cant <= 0) continue; // ignorar cantidades inválidas
+
+            stmt.setInt(1, cant);
+            stmt.setString(2, med);
+            stmt.setInt(3, cant);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected <= 0) {
+                JOptionPane.showMessageDialog(this,
+                        "No se pudo actualizar el stock de " + med + ". Puede que no exista o stock insuficiente.",
+                        "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(this, "Error al actualizar inventario: " + ex.getMessage(),
+                "Error de BD", JOptionPane.ERROR_MESSAGE);
+        logger.log(Level.SEVERE, "Error al descontar medicamento del inventario", ex);
+    } finally {
+        conexion.cerrarConexion(conn);
+    }
+}    
+    
+    private String obtenerNombrePaciente(String cedula) {
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+        if (conn == null) {
+            return "Error de conexión";
+        }
+
+        try {
+            // Corregido: Se busca por 'cedula' y se obtienen 'nombres' y 'apellidos'
+            String sql = "SELECT nombres, apellidos FROM Paciente WHERE cedula = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, cedula); // Establece el parámetro String
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("nombres").trim() + " " + rs.getString("apellidos").trim();
+            } else {
+                return "Paciente desconocido (Cédula: " + cedula + ")";
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error al obtener nombre del paciente con cédula: " + cedula, ex);
+            return "Error al cargar datos del paciente";
+        } finally {
+            conexion.cerrarConexion(conn);
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -75,6 +247,8 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         txtCantidadMedicamento = new javax.swing.JTextField();
         btnAnadirMedicamento = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        jTCedula = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Diagnóstico y Tratamiento Médico");
@@ -143,6 +317,14 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
             }
         });
 
+        jLabel7.setText("Cedula Paciente:");
+
+        jTCedula.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTCedulaActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -151,13 +333,7 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(28, 28, 28)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(cbMedicamentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel6))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addGap(195, 195, 195)
@@ -166,12 +342,24 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
                                         .addComponent(jLabel3)
                                         .addGap(18, 18, 18)
                                         .addComponent(txtCIE10, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel4)))))
+                                    .addComponent(jLabel4)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(cbMedicamentos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel6)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel7)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jTCedula, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(183, 183, 183))))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(289, 289, 289)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
-                            .addGroup(layout.createSequentialGroup()
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGap(0, 58, Short.MAX_VALUE)
                                 .addComponent(txtCantidadMedicamento, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(56, 56, 56)
@@ -187,15 +375,20 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnGenerarReceta)
-                        .addGap(76, 76, 76)
+                        .addGap(73, 73, 73)
                         .addComponent(btnVerHistorial)))
                 .addGap(24, 24, 24))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGap(17, 17, 17)
                 .addComponent(jLabel1)
-                .addGap(41, 41, 41)
+                .addGap(12, 12, 12)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(jTCedula, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(31, 31, 31)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -216,12 +409,12 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
                         .addComponent(jLabel2)
                         .addGap(18, 18, 18)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(64, 64, 64)
+                .addGap(29, 29, 29)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnGuardarDiagnostico)
                     .addComponent(btnGenerarReceta)
-                    .addComponent(btnVerHistorial))
-                .addContainerGap(31, Short.MAX_VALUE))
+                    .addComponent(btnVerHistorial)
+                    .addComponent(btnGuardarDiagnostico))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -407,13 +600,12 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
         // Opcional: cbMedicamentos.setSelectedIndex(0); // Seleccionar el primer elemento
 
 
+        
+        
     }//GEN-LAST:event_btnAnadirMedicamentoActionPerformed
 
     private void btnGenerarRecetaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGenerarRecetaActionPerformed
-        // Abrir la ventana GenerarReceta con la cédula del paciente actual
-        // Es importante que el diagnóstico y la receta se hayan guardado antes si se desea reflejar los cambios.
-        GenerarReceta generarRecetaFrame = new GenerarReceta(cedulaPaciente);
-        generarRecetaFrame.setVisible(true);
+        generarPDFReceta();
     }//GEN-LAST:event_btnGenerarRecetaActionPerformed
 
     private void btnVerHistorialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVerHistorialActionPerformed
@@ -423,6 +615,10 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
         // Ejemplo: HistorialPaciente historialFrame = new HistorialPaciente(cedulaPaciente);
         // historialFrame.setVisible(true);
     }//GEN-LAST:event_btnVerHistorialActionPerformed
+
+    private void jTCedulaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTCedulaActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTCedulaActionPerformed
 
     
     /**
@@ -568,8 +764,10 @@ public class DiagnosticoTratamiento extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextField jTCedula;
     private javax.swing.JTable tblMedicamentosAsignados;
     private javax.swing.JTextField txtCIE10;
     private javax.swing.JTextField txtCantidadMedicamento;
