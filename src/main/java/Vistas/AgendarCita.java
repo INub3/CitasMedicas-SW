@@ -62,6 +62,8 @@ public class AgendarCita extends javax.swing.JFrame {
         tablaHorarios = new javax.swing.JTable();
         jButton_AgendarCita = new javax.swing.JButton();
         cmbMedico = new javax.swing.JComboBox<>();
+        jLabel5 = new javax.swing.JLabel();
+        txtNombrePaciente = new javax.swing.JTextField();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -151,6 +153,8 @@ public class AgendarCita extends javax.swing.JFrame {
             }
         });
 
+        jLabel5.setText("Nombre del Paciente:");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -165,21 +169,22 @@ public class AgendarCita extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)
-                                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)
                                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(dateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(txtCedulaPaciente)
                                     .addComponent(cmbEspecialidad, 0, 212, Short.MAX_VALUE)
-                                    .addComponent(cmbMedico, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                    .addComponent(cmbMedico, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(txtNombrePaciente))))
                         .addGap(37, 37, 37))))
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(212, 212, 212)
+                .addGap(204, 204, 204)
                 .addComponent(jButton_AgendarCita)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
@@ -190,28 +195,29 @@ public class AgendarCita extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtCedulaPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1))
-                .addGap(18, 18, 18)
+                .addGap(29, 29, 29)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
+                    .addComponent(jLabel5)
+                    .addComponent(txtNombrePaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(29, 29, 29)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmbEspecialidad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addGap(29, 29, 29)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(cmbMedico, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(21, 21, 21)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addGap(24, 24, 24))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(cmbMedico, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(dateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
-                .addGap(26, 26, 26)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton_BuscarHorarios)
-                .addGap(31, 31, 31)
+                .addGap(40, 40, 40)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jButton_AgendarCita)
-                .addContainerGap(55, Short.MAX_VALUE))
+                .addGap(22, 22, 22))
         );
 
         jMenu1.setText("Agendar cita");
@@ -257,6 +263,7 @@ public class AgendarCita extends javax.swing.JFrame {
     private void jButton_AgendarCitaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_AgendarCitaActionPerformed
         // TODO add your handling code here:
         String cedula = (String) txtCedulaPaciente.getText();
+        String nombre = (String) txtNombrePaciente.getText();
         String medico = (String) cmbMedico.getSelectedItem();
         String especialidad = (String) cmbEspecialidad.getSelectedItem();
         
@@ -264,7 +271,7 @@ public class AgendarCita extends javax.swing.JFrame {
         SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         String fechaEnString = formatoFecha.format(fechaSelec);
         
-        if (cedula == null || cedula.trim().isEmpty() ||fechaEnString == null || medico == null || especialidad == null) {
+        if (cedula == null || cedula.trim().isEmpty() ||nombre.isEmpty()|fechaEnString == null || medico == null || especialidad == null) {
             JOptionPane.showMessageDialog(AgendarCita.this, "Por favor complete los campos de cedula, especialidad, médico y fecha.");
             return;
         }else{
@@ -274,7 +281,7 @@ public class AgendarCita extends javax.swing.JFrame {
                     String estado = (String) tablaHorarios.getValueAt(selectedRow, 1);
                     if ("Libre".equals(estado)) {
                         int resAgendar = JOptionPane.showConfirmDialog(AgendarCita.this, "Cita agendada para paciente con:\n Cedula: " 
-                                + cedula + "\nen: \n Especialidad: " + especialidad + "\n Medico: " + medico + "\n Fecha: " + fechaEnString 
+                                + cedula+"\nNombre: "+ nombre + "\nen: \n Especialidad: " + especialidad + "\n Medico: " + medico + "\n Fecha: " + fechaEnString 
                                 + "\n Hora: " + hora, 
                                 "Confirmar Agendamiento", JOptionPane.OK_CANCEL_OPTION,
                                 JOptionPane.INFORMATION_MESSAGE);
@@ -506,6 +513,7 @@ public class AgendarCita extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
@@ -516,5 +524,6 @@ public class AgendarCita extends javax.swing.JFrame {
     private javax.swing.JTable jTable1;
     private javax.swing.JTable tablaHorarios;
     private javax.swing.JTextField txtCedulaPaciente;
+    private javax.swing.JTextField txtNombrePaciente;
     // End of variables declaration//GEN-END:variables
 }
