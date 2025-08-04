@@ -7,10 +7,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.text.ParseException;
 import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -387,55 +390,116 @@ public class AgendarCita extends javax.swing.JFrame {
         return cedula;
     }
 
-    
     private void buscarHorarios() {
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+
         String medico = (String) cmbMedico.getSelectedItem();
+        String cedulaMedico = obtenerCedulaPorNombreMedico(medico);
+        // id_doctor es nchar en la BD, no int
+        String id_doctor = cedulaMedico;
         java.util.Date fecha = dateChooser.getDate();
 
-        // 1. Validaciones iniciales
-        if (fecha == null || medico == null || medico.isEmpty()) { // Añadido check para medico.isEmpty()
-            JOptionPane.showMessageDialog(this, "Por favor seleccione un médico y una fecha válidos.", "Error de Selección", JOptionPane.WARNING_MESSAGE);
+        // Validaciones iniciales
+        if (fecha == null || medico == null || medico.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor seleccione un médico y una fecha válidos.", 
+                "Error de Selección", 
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // 2. Obtener el modelo de la tabla
-        // Necesitamos el DefaultTableModel de tu JTable llamada 'tablaHorarios'.
-        // Asegúrate de que tablaHorarios ya esté inicializada en initComponents() o en tu constructor.
-        javax.swing.table.DefaultTableModel modeloTabla = (javax.swing.table.DefaultTableModel) tablaHorarios.getModel();
-
-        // 3. Limpiar la tabla de datos anteriores
-        // Esto remueve todas las filas existentes en el modelo.
-        modeloTabla.setRowCount(0);
-
-        // 4. Simular horarios (8:00 AM a 5:00 PM)
-        String[] horas = {
-                "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
-                "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
-        };
-
-        // 5. Simular y añadir filas al modelo de la tabla
-        for (String hora : horas) {
-            boolean ocupado = Math.random() > 0.5; // Simulación aleatoria
-            String estado = ocupado ? "Ocupado" : "Libre";
-
-            // Se crea un array de objetos para representar la fila.
-            // La tabla tendrá dos columnas: Hora y Estado.
-            Object[] fila = {hora, estado}; 
-            modeloTabla.addRow(fila); // Añade la fila al modelo de la tabla.
+        if (id_doctor == null || id_doctor.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No se encontró el ID del médico.", 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-        // 6. Asegurar la visibilidad y actualización de la tabla (si es necesario)
-        // Asumo que 'scrollTabla' es el JScrollPane que contiene 'tablaHorarios'.
-        // Si 'scrollTabla' está dentro de un panel que ya es visible, estas líneas podrían no ser estrictamente necesarias,
-        // pero no hacen daño si quieres asegurarte.
+        // Limpiar tabla
+        javax.swing.table.DefaultTableModel modeloTabla = 
+            (javax.swing.table.DefaultTableModel) tablaHorarios.getModel();
+        modeloTabla.setRowCount(0);
+
+        // Horarios disponibles (todos inician como libres)
+        String[] horas = {
+            "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", 
+            "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
+        };
+
+        // Convertir fecha a formato SQL
+        java.sql.Date sqlFecha = new java.sql.Date(fecha.getTime());
+
+        // Consultar horarios ocupados desde la base de datos
+        Set<String> horasOcupadas = new HashSet<>();
+        String consulta = "SELECT hora FROM Cita WHERE id_doctor = ? AND fecha = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(consulta)) {
+            stmt.setString(1, id_doctor); // Cambio a setString para nchar
+            stmt.setDate(2, sqlFecha);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Time horaTime = rs.getTime("hora");
+                if (horaTime != null) {
+                    // Convertir TIME de BD (HH:mm:ss) a formato 12 horas (HH:mm AM/PM)
+                    String horaFormato12 = convertirA12Horas(horaTime);
+                    horasOcupadas.add(horaFormato12);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, 
+                "Error al consultar la base de datos: " + ex.getMessage(), 
+                "Error SQL", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        } finally {
+            // Cerrar conexión
+            try {
+                if (conn != null && !conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        // Llenar tabla: Todos libres por defecto, ocupados solo si están en BD
+        for (String hora : horas) {
+            String estado = horasOcupadas.contains(hora) ? "Ocupado" : "Libre";
+            modeloTabla.addRow(new Object[]{hora, estado});
+        }
+
+        // Mostrar scroll pane y actualizar vista
         if (jScrollPane2 != null) {
             jScrollPane2.setVisible(true);
         }
+
+        revalidate();
+        repaint();
+    }
+
     
-        // Estos son para asegurar que la UI se redibuje correctamente.
-        // Solo son necesarios si has cambiado la visibilidad o tamaño del componente.
-        revalidate(); // Recalcula el layout de los componentes
-        repaint();    // Redibuja los componentes
+    /**
+    * Convierte java.sql.Time a formato de 12 horas (HH:mm AM/PM)
+    * Ejemplo: 09:00:00 -> 09:00 AM
+    */
+   private String convertirA12Horas(java.sql.Time time) {
+       try {
+           // Convertir Time a LocalTime
+           java.time.LocalTime localTime = time.toLocalTime();
+
+           // Formatear a 12 horas con AM/PM
+           java.time.format.DateTimeFormatter formatter = 
+               java.time.format.DateTimeFormatter.ofPattern("hh:mm a", java.util.Locale.ENGLISH);
+
+           return localTime.format(formatter);
+       } catch (Exception e) {
+           e.printStackTrace();
+           return null;
+       }
     }
     
     public boolean validarCedula(String cedula) {
