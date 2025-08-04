@@ -1,10 +1,13 @@
 package Vistas;
 
 import conexion.ConexionBD;
+import static java.lang.Integer.parseInt;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.ParseException;
 import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,7 +25,7 @@ public class AgendarCita extends javax.swing.JFrame {
     private JDateChooser dateChooser;
     private JTextField txtMotivoConsulta;
     private JComboBox<String> cmbEstadoCita;
-
+    
     /**
      * Creates new form AgendarCita
      */
@@ -35,8 +38,8 @@ public class AgendarCita extends javax.swing.JFrame {
         ((JTextField) dateChooser.getDateEditor().getUiComponent()).setEditable(false);
         
     }
-
-
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -64,9 +67,6 @@ public class AgendarCita extends javax.swing.JFrame {
         cmbMedico = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
         txtNombrePaciente = new javax.swing.JTextField();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenu2 = new javax.swing.JMenu();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -220,14 +220,6 @@ public class AgendarCita extends javax.swing.JFrame {
                 .addGap(22, 22, 22))
         );
 
-        jMenu1.setText("Agendar cita");
-        jMenuBar1.add(jMenu1);
-
-        jMenu2.setText("Diagnostico");
-        jMenuBar1.add(jMenu2);
-
-        setJMenuBar(jMenuBar1);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -262,71 +254,64 @@ public class AgendarCita extends javax.swing.JFrame {
 
     private void jButton_AgendarCitaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_AgendarCitaActionPerformed
         // TODO add your handling code here:
-        String cedula = (String) txtCedulaPaciente.getText();
-        String nombre = (String) txtNombrePaciente.getText();
+        String cedula = txtCedulaPaciente.getText().trim();
+        String nombre = txtNombrePaciente.getText().trim();
         String medico = (String) cmbMedico.getSelectedItem();
         String especialidad = (String) cmbEspecialidad.getSelectedItem();
-        
         Date fechaSelec = dateChooser.getDate();
+
+        // Validaciones básicas
+        if (cedula.isEmpty() || nombre.isEmpty() || medico == null || especialidad == null || fechaSelec == null) {
+            JOptionPane.showMessageDialog(this, "Por favor complete todos los campos: cédula, nombre, especialidad, médico y fecha.");
+            return;
+        }
+
+        int selectedRow = tablaHorarios.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Por favor seleccione un horario.");
+            return;
+        }
+
+        String hora = (String) tablaHorarios.getValueAt(selectedRow, 0);
+        String estado = (String) tablaHorarios.getValueAt(selectedRow, 1);
+
+        if (!"Libre".equals(estado)) {
+            JOptionPane.showMessageDialog(this, "El horario ya está ocupado.");
+            return;
+        }
+
+        // Confirmación previa al agendamiento
         SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         String fechaEnString = formatoFecha.format(fechaSelec);
-        
-        if (cedula == null || cedula.trim().isEmpty() ||nombre.isEmpty()|fechaEnString == null || medico == null || especialidad == null) {
-            JOptionPane.showMessageDialog(AgendarCita.this, "Por favor complete los campos de cedula, especialidad, médico y fecha.");
-            return;
-        }else{
-            int selectedRow = tablaHorarios.getSelectedRow();
-                if (selectedRow != -1) {
-                    String hora = (String) tablaHorarios.getValueAt(selectedRow, 0);
-                    String estado = (String) tablaHorarios.getValueAt(selectedRow, 1);
-                    if ("Libre".equals(estado)) {
-                        int resAgendar = JOptionPane.showConfirmDialog(AgendarCita.this, "Cita agendada para paciente con:\n Cedula: " 
-                                + cedula+"\nNombre: "+ nombre + "\nen: \n Especialidad: " + especialidad + "\n Medico: " + medico + "\n Fecha: " + fechaEnString 
-                                + "\n Hora: " + hora, 
-                                "Confirmar Agendamiento", JOptionPane.OK_CANCEL_OPTION,
-                                JOptionPane.INFORMATION_MESSAGE);
-                        
-                        if(resAgendar == JOptionPane.OK_OPTION){
-                            tablaHorarios.setValueAt("Ocupado", selectedRow, 1); // Actualizar estado a Ocupado
-                        }
-                        
-                    } else {
-                        JOptionPane.showMessageDialog(AgendarCita.this, "El horario ya está ocupado.");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(AgendarCita.this, "Por favor seleccione un horario.");
-                }
+        int resAgendar = JOptionPane.showConfirmDialog(this,
+                "¿Desea agendar esta cita?\n\n" +
+                        "Cédula: " + cedula +
+                        "\nNombre: " + nombre +
+                        "\nEspecialidad: " + especialidad +
+                        "\nMédico: " + medico +
+                        "\nFecha: " + fechaEnString +
+                        "\nHora: " + hora,
+                "Confirmar Agendamiento",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.INFORMATION_MESSAGE);
+
+        if (resAgendar == JOptionPane.OK_OPTION) {
+            try {
+                agendarCita(cedula);
+                tablaHorarios.setValueAt("Ocupado", selectedRow, 1); // Actualizar tabla
+                JOptionPane.showMessageDialog(this, "Cita agendada correctamente.");
+            } catch (SQLException ex) {
+                Logger.getLogger(AgendarCita.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Error al agendar la cita:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
-         
     }//GEN-LAST:event_jButton_AgendarCitaActionPerformed
 
     private void cmbMedicoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbMedicoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cmbMedicoActionPerformed
 
-    
-//    private void cargarMedicos() {
-//        String especialidad = (String) cmbEspecialidad.getSelectedItem();
-//        cmbMedico.removeAllItems();
-//
-//        switch (especialidad) {
-//            case "Cardiología":
-//                cmbMedico.addItem("Dr. Carlos Pérez");
-//                cmbMedico.addItem("Dra. Ana Martínez");
-//                break;
-//            case "Dermatología":
-//                cmbMedico.addItem("Dra. Laura Gómez");
-//                break;
-//            case "Pediatría":
-//                cmbMedico.addItem("Dr. Luis Fernández");
-//                cmbMedico.addItem("Dra. María López");
-//                break;
-//            case "General":
-//                cmbMedico.addItem("Dr. José Ramírez");
-//                break;
-//        }
-//    }
-//    
+      
     private void cargarMedicosPorEspecialidad(String especialidad) {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
@@ -376,6 +361,32 @@ public class AgendarCita extends javax.swing.JFrame {
             conexion.cerrarConexion(conn);
         }
     }
+    
+    private String obtenerCedulaPorNombreMedico(String nombreMedico) {
+        String cedula = null;
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+
+        try {
+            String sql = "SELECT cedula FROM Doctor WHERE nombres = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, nombreMedico);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                cedula = rs.getString("cedula");
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al obtener cédula: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al obtener cédula del médico", ex);
+        } finally {
+            conexion.cerrarConexion(conn);
+        }
+
+        return cedula;
+    }
+
     
     private void buscarHorarios() {
         String medico = (String) cmbMedico.getSelectedItem();
@@ -466,6 +477,69 @@ public class AgendarCita extends javax.swing.JFrame {
         // 5. Compara
         return digitoVerificadorCalculado == digitoVerificadorReal;
     }
+    
+    private void agendarCita(String cedula) throws SQLException{
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+        int id_Cita = generarNuevoIdCita(conn);
+        int id_paciente = Integer.parseInt(cedula);
+        Date fechaSelec = dateChooser.getDate(); // java.util.Date
+        Date fecha = new java.sql.Date(fechaSelec.getTime());
+        String motivo= "";
+        int id_tipo = 1;
+        
+        String nombreSeleccionado = (String) cmbMedico.getSelectedItem();
+        String cedulaMedico = obtenerCedulaPorNombreMedico(nombreSeleccionado);
+        int id_doctor = parseInt(cedulaMedico);
+        
+        int selectedRow = tablaHorarios.getSelectedRow();
+        String hora = (String) tablaHorarios.getValueAt(selectedRow, 0);
+
+        // Usamos un DateFormat para parsear el texto
+        SimpleDateFormat formatoHora = new SimpleDateFormat("HH:mm");
+        java.util.Date horaDate = null;
+        try {
+            horaDate = formatoHora.parse(hora);
+        } catch (ParseException ex) {
+            Logger.getLogger(AgendarCita.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // Convertimos a java.sql.Time
+        java.sql.Time horaSQL = new java.sql.Time(horaDate.getTime());
+
+        
+        if (conn == null) {
+            return;
+        }
+        
+        String sqlCita = "INSERT INTO CITA(id_cita, id_paciente, hora, "
+                + "fecha, motivo, id_doctor, id_tipo) VALUES (?,?,?,?,?,?,?)";
+        
+        try (PreparedStatement pstmtCita = conn.prepareStatement(sqlCita)) {
+            pstmtCita.setInt(1, id_Cita);
+            pstmtCita.setInt(2, id_paciente);
+            pstmtCita.setTime(3, horaSQL);
+            pstmtCita.setDate(4, (java.sql.Date) fecha);
+            pstmtCita.setString(5, motivo);
+            pstmtCita.setInt(6, id_doctor);
+            pstmtCita.setInt(7, id_tipo);
+            
+            if (pstmtCita.executeUpdate() == 0) {
+                throw new SQLException("No se pudo insertar la cita");
+            }
+        }
+    }
+    
+    private int generarNuevoIdCita(Connection conn) throws SQLException {
+        String sql = "SELECT MAX(ID_CITA) FROM CITA";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1) + 1;
+            }
+            return 1; // Si no hay citas, empezar con 1
+        }
+    }
 
     
     /**
@@ -514,9 +588,6 @@ public class AgendarCita extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
