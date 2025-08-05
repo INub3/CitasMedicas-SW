@@ -70,6 +70,10 @@ public class AgendarCita extends javax.swing.JFrame {
         cmbMedico = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
         txtNombrePaciente = new javax.swing.JTextField();
+        jButtonBuscarPac = new javax.swing.JButton();
+        jButtonRegistrarPac = new javax.swing.JButton();
+        txtApellidoPaciente = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -86,6 +90,8 @@ public class AgendarCita extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Agendamiento de citas Medicas");
+
+        jPanel1.setBackground(new java.awt.Color(102, 204, 255));
 
         jLabel1.setText("Cédula del Paciente:");
 
@@ -158,38 +164,58 @@ public class AgendarCita extends javax.swing.JFrame {
 
         jLabel5.setText("Nombre del Paciente:");
 
+        jButtonBuscarPac.setText("Buscar Paciente");
+        jButtonBuscarPac.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonBuscarPacActionPerformed(evt);
+            }
+        });
+
+        jButtonRegistrarPac.setText("Registrar Paciente");
+        jButtonRegistrarPac.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRegistrarPacActionPerformed(evt);
+            }
+        });
+
+        jLabel6.setText("Apellido del Paciente:");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(36, 36, 36)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton_BuscarHorarios)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)
-                                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(dateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(txtCedulaPaciente)
-                                    .addComponent(cmbEspecialidad, 0, 212, Short.MAX_VALUE)
-                                    .addComponent(cmbMedico, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(txtNombrePaciente))))
-                        .addGap(37, 37, 37))))
-            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(204, 204, 204)
                 .addComponent(jButton_AgendarCita)
                 .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(36, 36, 36)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jButton_BuscarHorarios)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 384, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(57, 57, 57)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtApellidoPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(dateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(txtCedulaPaciente)
+                                .addComponent(cmbEspecialidad, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(cmbMedico, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(txtNombrePaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButtonBuscarPac, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonRegistrarPac, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(21, 21, 21))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -198,11 +224,18 @@ public class AgendarCita extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtCedulaPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1))
-                .addGap(29, 29, 29)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonBuscarPac)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
-                    .addComponent(txtNombrePaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(29, 29, 29)
+                    .addComponent(txtNombrePaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonRegistrarPac))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtApellidoPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmbEspecialidad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -214,9 +247,9 @@ public class AgendarCita extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(dateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(38, 38, 38)
                 .addComponent(jButton_BuscarHorarios)
-                .addGap(40, 40, 40)
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jButton_AgendarCita)
@@ -250,8 +283,10 @@ public class AgendarCita extends javax.swing.JFrame {
 
     private void cmbEspecialidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbEspecialidadActionPerformed
         String especialidadSeleccionada = (String) cmbEspecialidad.getSelectedItem();
-        if (especialidadSeleccionada != null) {
+        if (especialidadSeleccionada != null && !especialidadSeleccionada.equals("Especialidad")) {
             cargarMedicosPorEspecialidad(especialidadSeleccionada);
+        }else {
+            cmbMedico.setModel(new DefaultComboBoxModel<>());
         }
     }//GEN-LAST:event_cmbEspecialidadActionPerformed
 
@@ -259,13 +294,14 @@ public class AgendarCita extends javax.swing.JFrame {
         // TODO add your handling code here:
         String cedula = txtCedulaPaciente.getText().trim();
         String nombre = txtNombrePaciente.getText().trim();
+        String apellido = txtApellidoPaciente.getText().trim();
         String medico = (String) cmbMedico.getSelectedItem();
         String especialidad = (String) cmbEspecialidad.getSelectedItem();
         Date fechaSelec = dateChooser.getDate();
 
         // Validaciones básicas
-        if (cedula.isEmpty() || nombre.isEmpty() || medico == null || especialidad == null || fechaSelec == null) {
-            JOptionPane.showMessageDialog(this, "Por favor complete todos los campos: cédula, nombre, especialidad, médico y fecha.");
+        if (cedula.isEmpty() || nombre.isEmpty() || apellido.isEmpty() || medico == null || especialidad == null || fechaSelec == null) {
+            JOptionPane.showMessageDialog(this, "Por favor complete todos los campos: cédula, nombre, apellido, especialidad, médico y fecha.");
             return;
         }
 
@@ -290,6 +326,7 @@ public class AgendarCita extends javax.swing.JFrame {
                 "¿Desea agendar esta cita?\n\n" +
                         "Cédula: " + cedula +
                         "\nNombre: " + nombre +
+                        "\nApellido: " + apellido +
                         "\nEspecialidad: " + especialidad +
                         "\nMédico: " + medico +
                         "\nFecha: " + fechaEnString +
@@ -313,6 +350,29 @@ public class AgendarCita extends javax.swing.JFrame {
     private void cmbMedicoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbMedicoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cmbMedicoActionPerformed
+
+    private void jButtonBuscarPacActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBuscarPacActionPerformed
+        // TODO add your handling code here:
+        String cedula = txtCedulaPaciente.getText().trim();
+        if (!cedula.isEmpty()) {
+            buscarPacientePorCedula(cedula);
+        } else {
+            JOptionPane.showMessageDialog(null, "Ingrese una cédula.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_jButtonBuscarPacActionPerformed
+
+    private void jButtonRegistrarPacActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRegistrarPacActionPerformed
+        // TODO add your handling code here:
+        String cedula = txtCedulaPaciente.getText().trim();
+        String nombre = txtNombrePaciente.getText().trim();
+        String apellido = txtApellidoPaciente.getText().trim();
+        
+        if (!cedula.isEmpty() || !nombre.isEmpty() || !apellido.isEmpty()) {
+            registrarPaciente(cedula, nombre, apellido);
+        }else{
+            JOptionPane.showMessageDialog(this, "Complete todos los campos.", "Campos incompletos", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_jButtonRegistrarPacActionPerformed
 
       
     private void cargarMedicosPorEspecialidad(String especialidad) {
@@ -347,15 +407,18 @@ public class AgendarCita extends javax.swing.JFrame {
         }
 
         try {
-            String sql = "SELECT DISTINCT especialidad FROM Doctor";
+            String sql = "SELECT Nombre FROM Especialidades";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
             DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+            model.addElement("Especialidad");
+            
             while (rs.next()) {
-                model.addElement(rs.getString("especialidad"));
+                model.addElement(rs.getString("Especialidad"));
             }
             cmbEspecialidad.setModel(model);
+            cmbEspecialidad.setSelectedIndex(0);
 
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error al cargar especialidades: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
@@ -501,6 +564,112 @@ public class AgendarCita extends javax.swing.JFrame {
            return null;
        }
     }
+   
+    private void buscarPacientePorCedula(String cedula) {
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            String sql = "SELECT nombres, apellidos FROM PACIENTE WHERE cedula = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, cedula);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                String nombre = rs.getString("nombres");
+                String apellido = rs.getString("apellidos");
+
+                txtNombrePaciente.setText(nombre);
+                txtApellidoPaciente.setText(apellido);
+            } else {
+                JOptionPane.showMessageDialog(this, "Paciente no encontrado. Regístrese primero para agendar.", "Paciente no encontrado", JOptionPane.WARNING_MESSAGE);
+                txtNombrePaciente.setText("");
+                txtApellidoPaciente.setText("");
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al buscar paciente: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        } finally {
+            conexion.cerrarConexion(conn);
+        }
+    }
+
+    
+    private void registrarPaciente(String cedula, String nombre, String apellido) {
+
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            conn.setAutoCommit(false); // Inicia transacción
+
+            // Paso 1: Insertar en Antecedentes
+            String sqlAntecedente = "INSERT INTO dbo.Antecedentes (familiares, patologicos, fisiologicos, enfermedades_actuales) VALUES ('Ninguno', 'Ninguno', 'Ninguno', 'Ninguna')";
+            PreparedStatement psAntecedente = conn.prepareStatement(sqlAntecedente, Statement.RETURN_GENERATED_KEYS);
+            psAntecedente.executeUpdate();
+            ResultSet rsAntecedente = psAntecedente.getGeneratedKeys();
+
+            int idAntecedente = -1;
+            if (rsAntecedente.next()) {
+                idAntecedente = rsAntecedente.getInt(1);
+            } else {
+                throw new SQLException("No se pudo obtener el ID de antecedentes.");
+            }
+
+            // Paso 2: Insertar en Anamnesis
+            String sqlAnamnesis = "INSERT INTO dbo.Anamnesis (parametro, valor) VALUES ('', '')";
+            PreparedStatement psAnamnesis = conn.prepareStatement(sqlAnamnesis, Statement.RETURN_GENERATED_KEYS);
+            psAnamnesis.executeUpdate();
+            ResultSet rsAnamnesis = psAnamnesis.getGeneratedKeys();
+
+            int idAnamnesis = -1;
+            if (rsAnamnesis.next()) {
+                idAnamnesis = rsAnamnesis.getInt(1);
+            } else {
+                throw new SQLException("No se pudo obtener el ID de anamnesis.");
+            }
+
+            // Paso 3: Insertar en Paciente
+            String sqlPaciente = "INSERT INTO dbo.Paciente (cedula, nombres, apellidos, id_antecedetes) VALUES (?, ?, ?, ?)";
+            PreparedStatement psPaciente = conn.prepareStatement(sqlPaciente);
+            psPaciente.setString(1, cedula);
+            psPaciente.setString(2, nombre);
+            psPaciente.setString(3, apellido);
+            psPaciente.setInt(4, idAntecedente);
+            psPaciente.executeUpdate();
+
+            // Confirmar todo
+            conn.commit();
+            JOptionPane.showMessageDialog(this, "Paciente registrado exitosamente.");
+
+        } catch (SQLException ex) {
+            try {
+                conn.rollback(); // Revertir si algo falla
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
+            JOptionPane.showMessageDialog(this, "Error al registrar paciente: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            conexion.cerrarConexion(conn);
+        }
+    }
+
     
     public boolean validarCedula(String cedula) {
         // 1. Verifica longitud y solo números
@@ -645,6 +814,8 @@ public class AgendarCita extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> cmbEspecialidad;
     private javax.swing.JComboBox<String> cmbMedico;
     private com.toedter.calendar.JDateChooser dateChooser;
+    private javax.swing.JButton jButtonBuscarPac;
+    private javax.swing.JButton jButtonRegistrarPac;
     private javax.swing.JButton jButton_AgendarCita;
     private javax.swing.JButton jButton_BuscarHorarios;
     private javax.swing.JLabel jLabel1;
@@ -652,12 +823,14 @@ public class AgendarCita extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable tablaHorarios;
+    private javax.swing.JTextField txtApellidoPaciente;
     private javax.swing.JTextField txtCedulaPaciente;
     private javax.swing.JTextField txtNombrePaciente;
     // End of variables declaration//GEN-END:variables
