@@ -628,9 +628,16 @@ public class AgendarCita extends javax.swing.JFrame {
 
     
     private void registrarPaciente(String cedula, String nombre, String apellido) throws SQLException {
+        
+        // Validación de cédula
+        if (!validarCedula(cedula)) {
+            JOptionPane.showMessageDialog(this, "Cédula inválida. Debe tener 10 digitos y ser ecuatoriana.", "Error de Validación", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
+        
         if (conn == null) {
             JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -650,11 +657,11 @@ public class AgendarCita extends javax.swing.JFrame {
             ResultSet rsAntecedente = psAntecedente.getGeneratedKeys();
 
             
-            if (rsAntecedente.next()) {
-                idAntecedente = rsAntecedente.getInt(1);
-            } else {
-                throw new SQLException("No se pudo obtener el ID de antecedentes.");
-            }
+//            if (rsAntecedente.next()) {
+//                idAntecedente = rsAntecedente.getInt(1);
+//            } else {
+//                throw new SQLException("No se pudo obtener el ID de antecedentes.");
+//            }
 
             // Paso 3: Insertar en Paciente
             String sqlPaciente = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Paciente] (cedula, nombres, apellidos, id_antecedetes) VALUES (?, ?, ?, ?)";
