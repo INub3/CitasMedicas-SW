@@ -368,7 +368,11 @@ public class AgendarCita extends javax.swing.JFrame {
         String apellido = txtApellidoPaciente.getText().trim();
         
         if (!cedula.isEmpty() || !nombre.isEmpty() || !apellido.isEmpty()) {
-            registrarPaciente(cedula, nombre, apellido);
+            try {
+                registrarPaciente(cedula, nombre, apellido);
+            } catch (SQLException ex) {
+                Logger.getLogger(AgendarCita.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }else{
             JOptionPane.showMessageDialog(this, "Complete todos los campos.", "Campos incompletos", JOptionPane.WARNING_MESSAGE);
         }
@@ -379,49 +383,69 @@ public class AgendarCita extends javax.swing.JFrame {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
 
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Error de conexión a la base de datos",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         try {
-            String sql = "SELECT nombres FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Doctor] WHERE especialidad = ?";
+            String sql = "SELECT CONCAT(nombres, ' ', apellidos) AS nombre_medico " +
+             "FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Doctor] " +
+             "WHERE id_especialidad = (" +
+             "   SELECT id_especialidad FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Especialidades] " +
+             "   WHERE nombre = ?" +
+             ")";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, especialidad);
             ResultSet rs = pstmt.executeQuery();
 
             DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+            model.addElement("Seleccione un médico");
+
             while (rs.next()) {
-            model.addElement(rs.getString("nombres"));
-        }
+                model.addElement(rs.getString("nombre_medico"));
+            }
             cmbMedico.setModel(model);
 
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error al cargar médicos: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
             logger.log(Level.SEVERE, "Error al cargar médicos por especialidad", ex);
         } finally {
-        conexion.cerrarConexion(conn);
+            conexion.cerrarConexion(conn);
         }
     }
     
     private void cargarEspecialidadesDisponibles() {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
+
         if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Error de conexión a la base de datos",
+                    "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
-            String sql = "SELECT Nombre FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Especialidades]";
+            String sql = "SELECT Nombre AS Especialidad FROM [" 
+                       + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Especialidades]";
+
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
             DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
-            model.addElement("Especialidad");
-            
+            model.addElement("Especialidad"); // Opción por defecto
+
             while (rs.next()) {
-                model.addElement(rs.getString("Especialidad"));
+                model.addElement(rs.getString("Especialidad")); // Ahora sí coincide con el alias
             }
+
             cmbEspecialidad.setModel(model);
             cmbEspecialidad.setSelectedIndex(0);
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error al cargar especialidades: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al cargar especialidades: " + ex.getMessage(),
+                    "Error de BD", JOptionPane.ERROR_MESSAGE);
             logger.log(Level.SEVERE, "Error al cargar especialidades", ex);
         } finally {
             conexion.cerrarConexion(conn);
@@ -434,7 +458,8 @@ public class AgendarCita extends javax.swing.JFrame {
         Connection conn = conexion.establecerConexion();
 
         try {
-            String sql = "SELECT cedula FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Doctor] WHERE nombres = ?";
+            String sql = "SELECT cedula FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Doctor] WHERE "
+                    + "CONCAT(nombres, ' ', apellidos) = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, nombreMedico);
             ResultSet rs = pstmt.executeQuery();
@@ -449,6 +474,7 @@ public class AgendarCita extends javax.swing.JFrame {
         } finally {
             conexion.cerrarConexion(conn);
         }
+        
 
         return cedula;
     }
@@ -601,7 +627,7 @@ public class AgendarCita extends javax.swing.JFrame {
     }
 
     
-    private void registrarPaciente(String cedula, String nombre, String apellido) {
+    private void registrarPaciente(String cedula, String nombre, String apellido) throws SQLException {
 
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
@@ -609,9 +635,13 @@ public class AgendarCita extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
+        int idAntecedente = generarNuevoIdAntecedentes(conn);
 
         try {
             conn.setAutoCommit(false); // Inicia transacción
+            Statement st = conn.createStatement();
+            st.execute("SET XACT_ABORT ON;");
 
             // Paso 1: Insertar en Antecedentes
             String sqlAntecedente = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Antecedentes] (familiares, patologicos, fisiologicos, enfermedades_actuales) VALUES ('Ninguno', 'Ninguno', 'Ninguno', 'Ninguna')";
@@ -619,24 +649,11 @@ public class AgendarCita extends javax.swing.JFrame {
             psAntecedente.executeUpdate();
             ResultSet rsAntecedente = psAntecedente.getGeneratedKeys();
 
-            int idAntecedente = -1;
+            
             if (rsAntecedente.next()) {
                 idAntecedente = rsAntecedente.getInt(1);
             } else {
                 throw new SQLException("No se pudo obtener el ID de antecedentes.");
-            }
-
-            // Paso 2: Insertar en Anamnesis
-            String sqlAnamnesis = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Anamnesis] (parametro, valor) VALUES ('', '')";
-            PreparedStatement psAnamnesis = conn.prepareStatement(sqlAnamnesis, Statement.RETURN_GENERATED_KEYS);
-            psAnamnesis.executeUpdate();
-            ResultSet rsAnamnesis = psAnamnesis.getGeneratedKeys();
-
-            int idAnamnesis = -1;
-            if (rsAnamnesis.next()) {
-                idAnamnesis = rsAnamnesis.getInt(1);
-            } else {
-                throw new SQLException("No se pudo obtener el ID de anamnesis.");
             }
 
             // Paso 3: Insertar en Paciente
@@ -711,64 +728,128 @@ public class AgendarCita extends javax.swing.JFrame {
         return digitoVerificadorCalculado == digitoVerificadorReal;
     }
     
-    private void agendarCita(String cedula) throws SQLException{
+    private void agendarCita(String cedula) throws SQLException {
         ConexionBD conexion = new ConexionBD();
         Connection conn = conexion.establecerConexion();
-        int id_Cita = generarNuevoIdCita(conn);
-        int id_paciente = Integer.parseInt(cedula);
-        Date fechaSelec = dateChooser.getDate(); // java.util.Date
-        Date fecha = new java.sql.Date(fechaSelec.getTime());
-        String motivo= "";
-        int id_tipo = 1;
-        
-        String nombreSeleccionado = (String) cmbMedico.getSelectedItem();
-        String cedulaMedico = obtenerCedulaPorNombreMedico(nombreSeleccionado);
-        int id_doctor = parseInt(cedulaMedico);
-        
-        int selectedRow = tablaHorarios.getSelectedRow();
-        String hora = (String) tablaHorarios.getValueAt(selectedRow, 0);
 
-        // Usamos un DateFormat para parsear el texto
-        SimpleDateFormat formatoHora = new SimpleDateFormat("HH:mm");
-        java.util.Date horaDate = null;
-        try {
-            horaDate = formatoHora.parse(hora);
-        } catch (ParseException ex) {
-            Logger.getLogger(AgendarCita.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        // Convertimos a java.sql.Time
-        java.sql.Time horaSQL = new java.sql.Time(horaDate.getTime());
-
-        
         if (conn == null) {
+            JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.");
             return;
         }
-        
-        String sqlCita = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Cita](id_cita, id_paciente, hora, "
-                + "fecha, motivo, id_doctor, id_tipo) VALUES (?,?,?,?,?,?,?)";
-        
-        try (PreparedStatement pstmtCita = conn.prepareStatement(sqlCita)) {
-            pstmtCita.setInt(1, id_Cita);
-            pstmtCita.setInt(2, id_paciente);
-            pstmtCita.setTime(3, horaSQL);
-            pstmtCita.setDate(4, (java.sql.Date) fecha);
-            pstmtCita.setString(5, motivo);
-            pstmtCita.setInt(6, id_doctor);
-            pstmtCita.setInt(7, id_tipo);
+
+        try {
+            conn.setAutoCommit(false); // Inicia transacción
+            Statement st = conn.createStatement();
+            st.execute("SET XACT_ABORT ON;");
+
+            int id_Cita = generarNuevoIdCita(conn);
+            int id_paciente = Integer.parseInt(cedula);
+            int id_anamnesis = generarNuevoIdAnam(conn);
+
+            Date fechaSelec = dateChooser.getDate();
+            Date fecha = new java.sql.Date(fechaSelec.getTime());
+
+            int selectedRow = tablaHorarios.getSelectedRow();
+            String hora = (String) tablaHorarios.getValueAt(selectedRow, 0);
+            SimpleDateFormat formatoHora = new SimpleDateFormat("HH:mm");
+            java.util.Date horaDate = formatoHora.parse(hora);
+            java.sql.Time horaSQL = new java.sql.Time(horaDate.getTime());
+
+            String medico = (String) cmbMedico.getSelectedItem();
+            String cedulaMedico = obtenerCedulaPorNombreMedico(medico);
+
+            String motivo = "";
+            int id_tipo = 1;
+
+            // Paso 1: Insertar en Anamnesis (deja que SQL Server genere el ID)
+            String sqlAnamnesis = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Anamnesis] "
+                    + " (parametro, valor) VALUES (?, ?)";
             
-            if (pstmtCita.executeUpdate() == 0) {
-                throw new SQLException("No se pudo insertar la cita");
+            try (PreparedStatement psAnamnesis = conn.prepareStatement(sqlAnamnesis, Statement.RETURN_GENERATED_KEYS)) {
+                psAnamnesis.setString(1, "");
+                psAnamnesis.setString(2, "");
+                psAnamnesis.executeUpdate();
+
+//                try (ResultSet rs = psAnamnesis.getGeneratedKeys()) {
+//                    if (rs.next()) {
+//                        id_anamnesis = rs.getInt(1);  // ← Este es el valor generado
+//                    } else {
+//                        throw new SQLException("No se pudo obtener el ID de anamnesis.");
+//                    }
+//                }
+            }
+
+            // Paso 2: Insertar en Cita con el ID de anamnesis generado
+            String sqlCita = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Cita] "
+                    + "(id_cita, id_paciente, hora, fecha, motivo, id_doctor, id_tipo, id_anamnesis) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement pstmtCita = conn.prepareStatement(sqlCita)) {
+                pstmtCita.setInt(1, id_Cita);
+                pstmtCita.setInt(2, id_paciente);
+                pstmtCita.setTime(3, horaSQL);
+                pstmtCita.setDate(4, (java.sql.Date) fecha);
+                pstmtCita.setString(5, motivo);
+                pstmtCita.setString(6, cedulaMedico);
+                pstmtCita.setInt(7, id_tipo);
+                pstmtCita.setInt(8, id_anamnesis);
+
+                if (pstmtCita.executeUpdate() == 0) {
+                    throw new SQLException("No se pudo insertar la cita");
+                }
+            }
+
+            conn.commit();
+            JOptionPane.showMessageDialog(this, "Cita agendada exitosamente.");
+
+        } catch (Exception ex) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al agendar cita: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conexion.cerrarConexion(conn);
             }
         }
     }
+
+
+
     
     private int generarNuevoIdCita(Connection conn) throws SQLException {
-        String sql = "SELECT MAX(ID_CITA) FROM CITA";
+        ConexionBD conexion = new ConexionBD();
+        String sql = "SELECT MAX(id_cita) FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Cita]";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
                 return rs.getInt(1) + 1;
+            }
+            return 1; // Si no hay citas, empezar con 1
+        }
+    }
+    
+    private int generarNuevoIdAnam(Connection conn) throws SQLException {
+        ConexionBD conexion = new ConexionBD();
+        String sql = "SELECT MAX(id_anamnesis) FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Anamnesis]";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 1; // Si no hay citas, empezar con 1
+        }
+    }
+    
+    private int generarNuevoIdAntecedentes(Connection conn) throws SQLException {
+        ConexionBD conexion = new ConexionBD();
+        String sql = "SELECT MAX(id_antecedentes) FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Antecedentes]";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1);
             }
             return 1; // Si no hay citas, empezar con 1
         }
