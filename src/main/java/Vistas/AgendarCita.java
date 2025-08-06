@@ -380,7 +380,7 @@ public class AgendarCita extends javax.swing.JFrame {
         Connection conn = conexion.establecerConexion();
 
         try {
-            String sql = "SELECT nombres FROM Doctor WHERE especialidad = ?";
+            String sql = "SELECT nombres FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Doctor] WHERE especialidad = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, especialidad);
             ResultSet rs = pstmt.executeQuery();
@@ -407,7 +407,7 @@ public class AgendarCita extends javax.swing.JFrame {
         }
 
         try {
-            String sql = "SELECT Nombre FROM Especialidades";
+            String sql = "SELECT Nombre FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Especialidades]";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
 
@@ -434,7 +434,7 @@ public class AgendarCita extends javax.swing.JFrame {
         Connection conn = conexion.establecerConexion();
 
         try {
-            String sql = "SELECT cedula FROM Doctor WHERE nombres = ?";
+            String sql = "SELECT cedula FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Doctor] WHERE nombres = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, nombreMedico);
             ResultSet rs = pstmt.executeQuery();
@@ -496,7 +496,7 @@ public class AgendarCita extends javax.swing.JFrame {
 
         // Consultar horarios ocupados desde la base de datos
         Set<String> horasOcupadas = new HashSet<>();
-        String consulta = "SELECT hora FROM Cita WHERE id_doctor = ? AND fecha = ?";
+        String consulta = "SELECT hora FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Cita] WHERE id_doctor = ? AND fecha = ?";
 
         try (PreparedStatement stmt = conn.prepareStatement(consulta)) {
             stmt.setString(1, id_doctor); // Cambio a setString para nchar
@@ -575,7 +575,7 @@ public class AgendarCita extends javax.swing.JFrame {
         }
 
         try {
-            String sql = "SELECT nombres, apellidos FROM PACIENTE WHERE cedula = ?";
+            String sql = "SELECT nombres, apellidos FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Paciente] WHERE cedula = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, cedula);
             ResultSet rs = pstmt.executeQuery();
@@ -614,7 +614,7 @@ public class AgendarCita extends javax.swing.JFrame {
             conn.setAutoCommit(false); // Inicia transacción
 
             // Paso 1: Insertar en Antecedentes
-            String sqlAntecedente = "INSERT INTO dbo.Antecedentes (familiares, patologicos, fisiologicos, enfermedades_actuales) VALUES ('Ninguno', 'Ninguno', 'Ninguno', 'Ninguna')";
+            String sqlAntecedente = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Antecedentes] (familiares, patologicos, fisiologicos, enfermedades_actuales) VALUES ('Ninguno', 'Ninguno', 'Ninguno', 'Ninguna')";
             PreparedStatement psAntecedente = conn.prepareStatement(sqlAntecedente, Statement.RETURN_GENERATED_KEYS);
             psAntecedente.executeUpdate();
             ResultSet rsAntecedente = psAntecedente.getGeneratedKeys();
@@ -627,7 +627,7 @@ public class AgendarCita extends javax.swing.JFrame {
             }
 
             // Paso 2: Insertar en Anamnesis
-            String sqlAnamnesis = "INSERT INTO dbo.Anamnesis (parametro, valor) VALUES ('', '')";
+            String sqlAnamnesis = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Anamnesis] (parametro, valor) VALUES ('', '')";
             PreparedStatement psAnamnesis = conn.prepareStatement(sqlAnamnesis, Statement.RETURN_GENERATED_KEYS);
             psAnamnesis.executeUpdate();
             ResultSet rsAnamnesis = psAnamnesis.getGeneratedKeys();
@@ -640,7 +640,7 @@ public class AgendarCita extends javax.swing.JFrame {
             }
 
             // Paso 3: Insertar en Paciente
-            String sqlPaciente = "INSERT INTO dbo.Paciente (cedula, nombres, apellidos, id_antecedetes) VALUES (?, ?, ?, ?)";
+            String sqlPaciente = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Paciente] (cedula, nombres, apellidos, id_antecedetes) VALUES (?, ?, ?, ?)";
             PreparedStatement psPaciente = conn.prepareStatement(sqlPaciente);
             psPaciente.setString(1, cedula);
             psPaciente.setString(2, nombre);
@@ -745,7 +745,7 @@ public class AgendarCita extends javax.swing.JFrame {
             return;
         }
         
-        String sqlCita = "INSERT INTO CITA(id_cita, id_paciente, hora, "
+        String sqlCita = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Cita](id_cita, id_paciente, hora, "
                 + "fecha, motivo, id_doctor, id_tipo) VALUES (?,?,?,?,?,?,?)";
         
         try (PreparedStatement pstmtCita = conn.prepareStatement(sqlCita)) {
