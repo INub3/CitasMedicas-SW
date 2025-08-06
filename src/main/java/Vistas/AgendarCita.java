@@ -16,14 +16,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.toedter.calendar.JDateChooser;
-
 /**
  *
  * @author Erick
  */
 public class AgendarCita extends javax.swing.JFrame {
-
+    
+    
     /*private JComboBox<String> cmbEspecialidad;
     private JComboBox<String> cmbMedico;
     private JDateChooser dateChooser;
@@ -34,15 +33,16 @@ public class AgendarCita extends javax.swing.JFrame {
      * Creates new form AgendarCita
      */
     private static final Logger logger = Logger.getLogger(DiagnosticoTratamiento.class.getName());
-
+    
     public AgendarCita() {
         initComponents();
-        cargarEspecialidadesDisponibles();
+        cargarEspecialidadesDisponibles(); 
         dateChooser.setMinSelectableDate(new Date());
         ((JTextField) dateChooser.getDateEditor().getUiComponent()).setEditable(false);
-
+        
     }
-
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -271,37 +271,14 @@ public class AgendarCita extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton_BuscarHorariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_BuscarHorariosActionPerformed
-        String cedula = txtCedulaPaciente.getText().trim();
-
-        // Validar cédula
-        if (!validarCedula(cedula)) {
-            JOptionPane.showMessageDialog(this,
-                    "❌ Cédula inválida. Debe tener 10 dígitos numéricos y ser ecuatoriana.",
-                    "Cédula Inválida",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Validar que haya seleccionado especialidad y médico
-        if (cmbEspecialidad.getSelectedItem() == null || cmbMedico.getSelectedItem() == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Por favor seleccione una especialidad y un médico.",
-                    "Campos Requeridos",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (dateChooser.getDate() == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Por favor seleccione una fecha.",
-                    "Fecha Requerida",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Todo está correcto, proceder a buscar horarios
-        JOptionPane.showMessageDialog(this, "✅ Cédula válida. Buscando horarios disponibles...", "Validación Exitosa", JOptionPane.INFORMATION_MESSAGE);
         buscarHorarios();
+        String cedula = txtCedulaPaciente.getText().trim();
+        
+        if (validarCedula(cedula)) {
+        JOptionPane.showMessageDialog(this, "Cédula válida.");
+        } else {
+            JOptionPane.showMessageDialog(this, "Cédula inválida. Debe tener 10 dígitos numéricos y ser ecuatoriana.","CEDULA INVALIDA" ,JOptionPane.WARNING_MESSAGE);
+        }
     }//GEN-LAST:event_jButton_BuscarHorariosActionPerformed
 
     private void cmbEspecialidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbEspecialidadActionPerformed
@@ -314,23 +291,23 @@ public class AgendarCita extends javax.swing.JFrame {
     }//GEN-LAST:event_cmbEspecialidadActionPerformed
 
     private void jButton_AgendarCitaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_AgendarCitaActionPerformed
-        // Obtener datos de la interfaz
+        // TODO add your handling code here:
         String cedula = txtCedulaPaciente.getText().trim();
         String nombre = txtNombrePaciente.getText().trim();
+        String apellido = txtApellidoPaciente.getText().trim();
         String medico = (String) cmbMedico.getSelectedItem();
         String especialidad = (String) cmbEspecialidad.getSelectedItem();
         Date fechaSelec = dateChooser.getDate();
 
         // Validaciones básicas
-        if (cedula.isEmpty() || nombre.isEmpty() || fechaSelec == null || medico == null || especialidad == null) {
-            JOptionPane.showMessageDialog(this, "Por favor complete todos los campos requeridos.", "Campos Incompletos", JOptionPane.WARNING_MESSAGE);
+        if (cedula.isEmpty() || nombre.isEmpty() || apellido.isEmpty() || medico == null || especialidad == null || fechaSelec == null) {
+            JOptionPane.showMessageDialog(this, "Por favor complete todos los campos: cédula, nombre, apellido, especialidad, médico y fecha.");
             return;
         }
 
-        // Validar que se haya seleccionado un horario
         int selectedRow = tablaHorarios.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Por favor seleccione un horario de la tabla.", "Horario no seleccionado", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor seleccione un horario.");
             return;
         }
 
@@ -338,195 +315,96 @@ public class AgendarCita extends javax.swing.JFrame {
         String estado = (String) tablaHorarios.getValueAt(selectedRow, 1);
 
         if (!"Libre".equals(estado)) {
-            JOptionPane.showMessageDialog(this, "El horario seleccionado ya está ocupado.", "Horario Ocupado", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "El horario ya está ocupado.");
             return;
         }
 
-        // Formatear fecha para la base de datos
-        SimpleDateFormat formatoFechaBD = new SimpleDateFormat("yyyy-MM-dd");
-        String fechaBD = formatoFechaBD.format(fechaSelec);
-
-        // Formatear fecha para mostrar al usuario
-        SimpleDateFormat formatoFechaUsuario = new SimpleDateFormat("dd/MM/yyyy");
-        String fechaUsuario = formatoFechaUsuario.format(fechaSelec);
-
-        // Mostrar confirmación
-        int confirmacion = JOptionPane.showConfirmDialog(this,
-                "¿Confirmar agendamiento de cita?\n\n"
-                + "Paciente: " + nombre + "\n"
-                + "Cédula: " + cedula + "\n"
-                + "Especialidad: " + especialidad + "\n"
-                + "Médico: " + medico + "\n"
-                + "Fecha: " + fechaUsuario + "\n"
-                + "Hora: " + hora,
+        // Confirmación previa al agendamiento
+        SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+        String fechaEnString = formatoFecha.format(fechaSelec);
+        int resAgendar = JOptionPane.showConfirmDialog(this,
+                "¿Desea agendar esta cita?\n\n" +
+                        "Cédula: " + cedula +
+                        "\nNombre: " + nombre +
+                        "\nApellido: " + apellido +
+                        "\nEspecialidad: " + especialidad +
+                        "\nMédico: " + medico +
+                        "\nFecha: " + fechaEnString +
+                        "\nHora: " + hora,
                 "Confirmar Agendamiento",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.INFORMATION_MESSAGE);
 
-        if (confirmacion != JOptionPane.YES_OPTION) {
-            return;
-        }
-
-        // Proceder con el guardado en la base de datos
-        ConexionBD conexion = new ConexionBD();
-        Connection conn = conexion.establecerConexion();
-
-        if (conn == null) {
-            JOptionPane.showMessageDialog(this, "Error: No se pudo conectar a la base de datos.", "Error de Conexión", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        try {
-            // 1. Obtener el próximo ID para la cita
-            String sqlMaxId = "SELECT ISNULL(MAX(id_cita), 0) + 1 AS siguiente_id FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Cita]";
-            PreparedStatement pstmtMaxId = conn.prepareStatement(sqlMaxId);
-            ResultSet rsMaxId = pstmtMaxId.executeQuery();
-
-            int siguienteIdCita = 1;
-            if (rsMaxId.next()) {
-                siguienteIdCita = rsMaxId.getInt("siguiente_id");
+        if (resAgendar == JOptionPane.OK_OPTION) {
+            try {
+                agendarCita(cedula);
+                tablaHorarios.setValueAt("Ocupado", selectedRow, 1); // Actualizar tabla
+                JOptionPane.showMessageDialog(this, "Cita agendada correctamente.");
+            } catch (SQLException ex) {
+                Logger.getLogger(AgendarCita.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Error al agendar la cita:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-            rsMaxId.close();
-            pstmtMaxId.close();
-
-            // 2. Usar la cédula del médico directamente (1726357211 según tu BD)
-            String cedulaDoctor = "1726357211";  // Cédula de Boris Gabriel Garcés Proaño
-
-            // 3. Insertar la nueva cita
-            String sqlInsert = "INSERT INTO [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Cita] "
-                    + "(id_cita, id_paciente, hora, fecha, motivo, id_doctor, id_tipo, id_anamnesis, id_enfermero, "
-                    + "estatura, tiempo_enfermedad, presion_sistolica, presion_diastolica, peso, frecuencia_cardiaca, diagnostico) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-            PreparedStatement pstmtInsert = conn.prepareStatement(sqlInsert);
-
-            // Configurar parámetros
-            pstmtInsert.setInt(1, siguienteIdCita);           // id_cita (auto-generado)
-            pstmtInsert.setString(2, cedula);                 // id_paciente (cédula del paciente)
-            pstmtInsert.setString(3, hora);                   // hora
-            pstmtInsert.setString(4, fechaBD);                // fecha (formato yyyy-MM-dd)
-            pstmtInsert.setString(5, "Consulta general");     // motivo (valor por defecto)
-            pstmtInsert.setString(6, cedulaDoctor);           // id_doctor (cédula del médico)
-            pstmtInsert.setInt(7, 1);                         // id_tipo (1 por defecto)
-            pstmtInsert.setInt(8, 1);
-            pstmtInsert.setString(9, cedula);                 // id_enfermero (usar cédula)
-
-            // Campos con valores NULL por defecto (se llenarán en el diagnóstico)
-            pstmtInsert.setObject(10, null);                  // estatura
-            pstmtInsert.setObject(11, null);                  // tiempo_enfermedad
-            pstmtInsert.setObject(12, null);                  // presion_sistolica
-            pstmtInsert.setObject(13, null);                  // presion_diastolica
-            pstmtInsert.setObject(14, null);                  // peso
-            pstmtInsert.setObject(15, null);                  // frecuencia_cardiaca
-            pstmtInsert.setObject(16, null);                  // diagnostico
-
-            int filasAfectadas = pstmtInsert.executeUpdate();
-            pstmtInsert.close();
-
-            if (filasAfectadas > 0) {
-                // Actualizar la tabla visual
-                tablaHorarios.setValueAt("Ocupado", selectedRow, 1);
-
-                JOptionPane.showMessageDialog(this,
-                        "✅ Cita agendada exitosamente\n\n"
-                        + "ID de Cita: " + siguienteIdCita + "\n"
-                        + "Paciente: " + nombre + "\n"
-                        + "Fecha: " + fechaUsuario + "\n"
-                        + "Hora: " + hora + "\n"
-                        + "Médico: " + medico,
-                        "Cita Agendada",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                // Limpiar formulario
-                txtCedulaPaciente.setText("");
-                txtNombrePaciente.setText("");
-                dateChooser.setDate(null);
-                cmbEspecialidad.setSelectedIndex(0);
-                cmbMedico.setSelectedIndex(0);
-
-                // Limpiar tabla de horarios
-                javax.swing.table.DefaultTableModel modeloTabla = (javax.swing.table.DefaultTableModel) tablaHorarios.getModel();
-                modeloTabla.setRowCount(0);
-
-            } else {
-                JOptionPane.showMessageDialog(this, "Error: No se pudo guardar la cita.", "Error al Guardar", JOptionPane.ERROR_MESSAGE);
-            }
-
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error en la base de datos:\n" + ex.getMessage(),
-                    "Error de BD",
-                    JOptionPane.ERROR_MESSAGE);
-            logger.log(Level.SEVERE, "Error al guardar cita", ex);
-        } finally {
-            conexion.cerrarConexion(conn);
         }
-
     }//GEN-LAST:event_jButton_AgendarCitaActionPerformed
 
     private void cmbMedicoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbMedicoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cmbMedicoActionPerformed
 
-//    private void cargarMedicos() {
-//        String especialidad = (String) cmbEspecialidad.getSelectedItem();
-//        cmbMedico.removeAllItems();
-//
-//        switch (especialidad) {
-//            case "Cardiología":
-//                cmbMedico.addItem("Dr. Carlos Pérez");
-//                cmbMedico.addItem("Dra. Ana Martínez");
-//                break;
-//            case "Dermatología":
-//                cmbMedico.addItem("Dra. Laura Gómez");
-//                break;
-//            case "Pediatría":
-//                cmbMedico.addItem("Dr. Luis Fernández");
-//                cmbMedico.addItem("Dra. María López");
-//                break;
-//            case "General":
-//                cmbMedico.addItem("Dr. José Ramírez");
-//                break;
-//        }
-//    }
-//    
-    private void cargarMedicosPorEspecialidad(String especialidad) {
-        // Versión que siempre muestra el médico real de tu base de datos
-        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
-
-        // Cargar el médico real: Boris Gabriel Garcés Proaño
-        model.addElement("Boris Gabriel Garcés Proaño");
-
-        // Si quieres agregar más médicos según especialidad, puedes hacerlo aquí
-        switch (especialidad) {
-            case "MedicinaGeneral":
-                model.addElement("Boris Gabriel Garcés Proaño");
-                break;
-            case "Cardiología":
-                model.addElement("Boris Gabriel Garcés Proaño");
-                break;
-            case "Pediatría":
-                model.addElement("Boris Gabriel Garcés Proaño");
-                break;
-            case "Dermatología":
-                model.addElement("Boris Gabriel Garcés Proaño");
-                break;
-            default:
-                model.addElement("Boris Gabriel Garcés Proaño");
-                break;
+    private void jButtonBuscarPacActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBuscarPacActionPerformed
+        // TODO add your handling code here:
+        String cedula = txtCedulaPaciente.getText().trim();
+        if (!cedula.isEmpty()) {
+            buscarPacientePorCedula(cedula);
+        } else {
+            JOptionPane.showMessageDialog(null, "Ingrese una cédula.", "Advertencia", JOptionPane.WARNING_MESSAGE);
         }
+    }//GEN-LAST:event_jButtonBuscarPacActionPerformed
 
-        cmbMedico.setModel(model);
+    private void jButtonRegistrarPacActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRegistrarPacActionPerformed
+        // TODO add your handling code here:
+        String cedula = txtCedulaPaciente.getText().trim();
+        String nombre = txtNombrePaciente.getText().trim();
+        String apellido = txtApellidoPaciente.getText().trim();
+        
+        if (!cedula.isEmpty() || !nombre.isEmpty() || !apellido.isEmpty()) {
+            registrarPaciente(cedula, nombre, apellido);
+        }else{
+            JOptionPane.showMessageDialog(this, "Complete todos los campos.", "Campos incompletos", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_jButtonRegistrarPacActionPerformed
 
-        // Seleccionar el primer médico automáticamente
-        if (model.getSize() > 0) {
-            cmbMedico.setSelectedIndex(0);
+      
+    private void cargarMedicosPorEspecialidad(String especialidad) {
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+
+        try {
+            String sql = "SELECT nombres FROM Doctor WHERE especialidad = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, especialidad);
+            ResultSet rs = pstmt.executeQuery();
+
+            DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+            while (rs.next()) {
+            model.addElement(rs.getString("nombres"));
+        }
+            cmbMedico.setModel(model);
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar médicos: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al cargar médicos por especialidad", ex);
+        } finally {
+        conexion.cerrarConexion(conn);
         }
     }
-
+    
     private void cargarEspecialidadesDisponibles() {
-        // Solución simplificada que siempre funciona
-        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+        if (conn == null) {
+            return;
+        }
 
         try {
             String sql = "SELECT Nombre FROM Especialidades";
@@ -542,10 +420,37 @@ public class AgendarCita extends javax.swing.JFrame {
             cmbEspecialidad.setModel(model);
             cmbEspecialidad.setSelectedIndex(0);
 
-        // Seleccionar la primera especialidad automáticamente
-        if (model.getSize() > 0) {
-            cmbEspecialidad.setSelectedIndex(0);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar especialidades: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al cargar especialidades", ex);
+        } finally {
+            conexion.cerrarConexion(conn);
         }
+    }
+    
+    private String obtenerCedulaPorNombreMedico(String nombreMedico) {
+        String cedula = null;
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+
+        try {
+            String sql = "SELECT cedula FROM Doctor WHERE nombres = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, nombreMedico);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                cedula = rs.getString("cedula");
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al obtener cédula: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            logger.log(Level.SEVERE, "Error al obtener cédula del médico", ex);
+        } finally {
+            conexion.cerrarConexion(conn);
+        }
+
+        return cedula;
     }
 
     private void buscarHorarios() {
@@ -560,43 +465,212 @@ public class AgendarCita extends javax.swing.JFrame {
 
         // Validaciones iniciales
         if (fecha == null || medico == null || medico.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor seleccione un médico y una fecha válidos.", "Error de Selección", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, 
+                "Por favor seleccione un médico y una fecha válidos.", 
+                "Error de Selección", 
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Obtener el modelo de la tabla
-        javax.swing.table.DefaultTableModel modeloTabla = (javax.swing.table.DefaultTableModel) tablaHorarios.getModel();
-        modeloTabla.setRowCount(0); // Limpiar tabla
-
-        // Generar horarios disponibles (formato 24 horas)
-        String[] horas = {
-            "08:00", "09:00", "10:00", "11:00",
-            "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"
-        };
-
-        // Añadir todos los horarios como "Libre" 
-        for (String hora : horas) {
-            Object[] fila = {hora, "Libre"};
-            modeloTabla.addRow(fila);
+        if (id_doctor == null || id_doctor.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No se encontró el ID del médico.", 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-        // Mostrar mensaje informativo
-        JOptionPane.showMessageDialog(this,
-                "Horarios cargados para:\n"
-                + "Médico: " + medico + "\n"
-                + "Fecha: " + new SimpleDateFormat("dd/MM/yyyy").format(fecha) + "\n\n"
-                + "Todos los horarios están disponibles",
-                "Horarios Disponibles",
-                JOptionPane.INFORMATION_MESSAGE);
+        // Limpiar tabla
+        javax.swing.table.DefaultTableModel modeloTabla = 
+            (javax.swing.table.DefaultTableModel) tablaHorarios.getModel();
+        modeloTabla.setRowCount(0);
 
-        // Asegurar visibilidad de la tabla
+        // Horarios disponibles (todos inician como libres)
+        String[] horas = {
+            "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", 
+            "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
+        };
+
+        // Convertir fecha a formato SQL
+        java.sql.Date sqlFecha = new java.sql.Date(fecha.getTime());
+
+        // Consultar horarios ocupados desde la base de datos
+        Set<String> horasOcupadas = new HashSet<>();
+        String consulta = "SELECT hora FROM Cita WHERE id_doctor = ? AND fecha = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(consulta)) {
+            stmt.setString(1, id_doctor); // Cambio a setString para nchar
+            stmt.setDate(2, sqlFecha);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Time horaTime = rs.getTime("hora");
+                if (horaTime != null) {
+                    // Convertir TIME de BD (HH:mm:ss) a formato 12 horas (HH:mm AM/PM)
+                    String horaFormato12 = convertirA12Horas(horaTime);
+                    horasOcupadas.add(horaFormato12);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, 
+                "Error al consultar la base de datos: " + ex.getMessage(), 
+                "Error SQL", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        } finally {
+            // Cerrar conexión
+            try {
+                if (conn != null && !conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        // Llenar tabla: Todos libres por defecto, ocupados solo si están en BD
+        for (String hora : horas) {
+            String estado = horasOcupadas.contains(hora) ? "Ocupado" : "Libre";
+            modeloTabla.addRow(new Object[]{hora, estado});
+        }
+
+        // Mostrar scroll pane y actualizar vista
         if (jScrollPane2 != null) {
             jScrollPane2.setVisible(true);
         }
+
         revalidate();
         repaint();
     }
 
+    
+    /**
+    * Convierte java.sql.Time a formato de 12 horas (HH:mm AM/PM)
+    * Ejemplo: 09:00:00 -> 09:00 AM
+    */
+   private String convertirA12Horas(java.sql.Time time) {
+       try {
+           // Convertir Time a LocalTime
+           java.time.LocalTime localTime = time.toLocalTime();
+
+           // Formatear a 12 horas con AM/PM
+           java.time.format.DateTimeFormatter formatter = 
+               java.time.format.DateTimeFormatter.ofPattern("hh:mm a", java.util.Locale.ENGLISH);
+
+           return localTime.format(formatter);
+       } catch (Exception e) {
+           e.printStackTrace();
+           return null;
+       }
+    }
+   
+    private void buscarPacientePorCedula(String cedula) {
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            String sql = "SELECT nombres, apellidos FROM PACIENTE WHERE cedula = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, cedula);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                String nombre = rs.getString("nombres");
+                String apellido = rs.getString("apellidos");
+
+                txtNombrePaciente.setText(nombre);
+                txtApellidoPaciente.setText(apellido);
+            } else {
+                JOptionPane.showMessageDialog(this, "Paciente no encontrado. Regístrese primero para agendar.", "Paciente no encontrado", JOptionPane.WARNING_MESSAGE);
+                txtNombrePaciente.setText("");
+                txtApellidoPaciente.setText("");
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al buscar paciente: " + ex.getMessage(), "Error de BD", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        } finally {
+            conexion.cerrarConexion(conn);
+        }
+    }
+
+    
+    private void registrarPaciente(String cedula, String nombre, String apellido) {
+
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            conn.setAutoCommit(false); // Inicia transacción
+
+            // Paso 1: Insertar en Antecedentes
+            String sqlAntecedente = "INSERT INTO dbo.Antecedentes (familiares, patologicos, fisiologicos, enfermedades_actuales) VALUES ('Ninguno', 'Ninguno', 'Ninguno', 'Ninguna')";
+            PreparedStatement psAntecedente = conn.prepareStatement(sqlAntecedente, Statement.RETURN_GENERATED_KEYS);
+            psAntecedente.executeUpdate();
+            ResultSet rsAntecedente = psAntecedente.getGeneratedKeys();
+
+            int idAntecedente = -1;
+            if (rsAntecedente.next()) {
+                idAntecedente = rsAntecedente.getInt(1);
+            } else {
+                throw new SQLException("No se pudo obtener el ID de antecedentes.");
+            }
+
+            // Paso 2: Insertar en Anamnesis
+            String sqlAnamnesis = "INSERT INTO dbo.Anamnesis (parametro, valor) VALUES ('', '')";
+            PreparedStatement psAnamnesis = conn.prepareStatement(sqlAnamnesis, Statement.RETURN_GENERATED_KEYS);
+            psAnamnesis.executeUpdate();
+            ResultSet rsAnamnesis = psAnamnesis.getGeneratedKeys();
+
+            int idAnamnesis = -1;
+            if (rsAnamnesis.next()) {
+                idAnamnesis = rsAnamnesis.getInt(1);
+            } else {
+                throw new SQLException("No se pudo obtener el ID de anamnesis.");
+            }
+
+            // Paso 3: Insertar en Paciente
+            String sqlPaciente = "INSERT INTO dbo.Paciente (cedula, nombres, apellidos, id_antecedetes) VALUES (?, ?, ?, ?)";
+            PreparedStatement psPaciente = conn.prepareStatement(sqlPaciente);
+            psPaciente.setString(1, cedula);
+            psPaciente.setString(2, nombre);
+            psPaciente.setString(3, apellido);
+            psPaciente.setInt(4, idAntecedente);
+            psPaciente.executeUpdate();
+
+            // Confirmar todo
+            conn.commit();
+            JOptionPane.showMessageDialog(this, "Paciente registrado exitosamente.");
+
+        } catch (SQLException ex) {
+            try {
+                conn.rollback(); // Revertir si algo falla
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
+            JOptionPane.showMessageDialog(this, "Error al registrar paciente: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            conexion.cerrarConexion(conn);
+        }
+    }
+
+    
     public boolean validarCedula(String cedula) {
         // 1. Verifica longitud y solo números
         if (cedula == null || !cedula.matches("\\d{10}")) {
@@ -622,9 +696,7 @@ public class AgendarCita extends javax.swing.JFrame {
             // Los dígitos en posiciones impares (0,2,4...) se multiplican por 2
             if (i % 2 == 0) {
                 num *= 2;
-                if (num > 9) {
-                    num -= 9;
-                }
+                if (num > 9) num -= 9;
             }
             suma += num;
         }
@@ -702,35 +774,7 @@ public class AgendarCita extends javax.swing.JFrame {
         }
     }
 
-    private boolean validarPacienteExiste(String cedula) {
-        ConexionBD conexion = new ConexionBD();
-        Connection conn = conexion.establecerConexion();
-
-        if (conn == null) {
-            return false;
-        }
-
-        try {
-            String sql = "SELECT id_paciente FROM [" + conexion.getLinkedServerName() + "].[polisalud].[dbo].[Paciente] WHERE id_paciente = ?";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, cedula);
-            ResultSet rs = pstmt.executeQuery();
-
-            boolean existe = rs.next();
-
-            rs.close();
-            pstmt.close();
-
-            return existe;
-
-        } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error al validar paciente", ex);
-            return false;
-        } finally {
-            conexion.cerrarConexion(conn);
-        }
-    }
-
+    
     /**
      * @param args the command line arguments
      */
