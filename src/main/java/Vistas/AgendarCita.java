@@ -1,13 +1,19 @@
 package Vistas;
 
 import conexion.ConexionBD;
+import static java.lang.Integer.parseInt;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Time;
+import java.text.ParseException;
 import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.toedter.calendar.JDateChooser;
@@ -23,7 +29,7 @@ public class AgendarCita extends javax.swing.JFrame {
     private JDateChooser dateChooser;
     private JTextField txtMotivoConsulta;
     private JComboBox<String> cmbEstadoCita;
-
+    
     /**
      * Creates new form AgendarCita
      */
@@ -64,9 +70,10 @@ public class AgendarCita extends javax.swing.JFrame {
         cmbMedico = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
         txtNombrePaciente = new javax.swing.JTextField();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenu2 = new javax.swing.JMenu();
+        jButtonBuscarPac = new javax.swing.JButton();
+        jButtonRegistrarPac = new javax.swing.JButton();
+        txtApellidoPaciente = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -83,6 +90,8 @@ public class AgendarCita extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Agendamiento de citas Medicas");
+
+        jPanel1.setBackground(new java.awt.Color(102, 204, 255));
 
         jLabel1.setText("Cédula del Paciente:");
 
@@ -155,38 +164,58 @@ public class AgendarCita extends javax.swing.JFrame {
 
         jLabel5.setText("Nombre del Paciente:");
 
+        jButtonBuscarPac.setText("Buscar Paciente");
+        jButtonBuscarPac.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonBuscarPacActionPerformed(evt);
+            }
+        });
+
+        jButtonRegistrarPac.setText("Registrar Paciente");
+        jButtonRegistrarPac.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRegistrarPacActionPerformed(evt);
+            }
+        });
+
+        jLabel6.setText("Apellido del Paciente:");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(36, 36, 36)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton_BuscarHorarios)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)
-                                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(dateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(txtCedulaPaciente)
-                                    .addComponent(cmbEspecialidad, 0, 212, Short.MAX_VALUE)
-                                    .addComponent(cmbMedico, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(txtNombrePaciente))))
-                        .addGap(37, 37, 37))))
-            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(204, 204, 204)
                 .addComponent(jButton_AgendarCita)
                 .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(36, 36, 36)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jButton_BuscarHorarios)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 384, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(57, 57, 57)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtApellidoPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(dateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(txtCedulaPaciente)
+                                .addComponent(cmbEspecialidad, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(cmbMedico, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(txtNombrePaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButtonBuscarPac, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonRegistrarPac, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(21, 21, 21))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -195,11 +224,18 @@ public class AgendarCita extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtCedulaPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1))
-                .addGap(29, 29, 29)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonBuscarPac)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
-                    .addComponent(txtNombrePaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(29, 29, 29)
+                    .addComponent(txtNombrePaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonRegistrarPac))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtApellidoPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmbEspecialidad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -211,22 +247,14 @@ public class AgendarCita extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(dateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(38, 38, 38)
                 .addComponent(jButton_BuscarHorarios)
-                .addGap(40, 40, 40)
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jButton_AgendarCita)
                 .addGap(22, 22, 22))
         );
-
-        jMenu1.setText("Agendar cita");
-        jMenuBar1.add(jMenu1);
-
-        jMenu2.setText("Diagnostico");
-        jMenuBar1.add(jMenu2);
-
-        setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -278,8 +306,10 @@ public class AgendarCita extends javax.swing.JFrame {
 
     private void cmbEspecialidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbEspecialidadActionPerformed
         String especialidadSeleccionada = (String) cmbEspecialidad.getSelectedItem();
-        if (especialidadSeleccionada != null) {
+        if (especialidadSeleccionada != null && !especialidadSeleccionada.equals("Especialidad")) {
             cargarMedicosPorEspecialidad(especialidadSeleccionada);
+        }else {
+            cmbMedico.setModel(new DefaultComboBoxModel<>());
         }
     }//GEN-LAST:event_cmbEspecialidadActionPerformed
 
@@ -498,13 +528,19 @@ public class AgendarCita extends javax.swing.JFrame {
         // Solución simplificada que siempre funciona
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
 
-        // Agregar especialidades disponibles
-        model.addElement("MedicinaGeneral");
-        model.addElement("Cardiología");
-        model.addElement("Pediatría");
-        model.addElement("Dermatología");
+        try {
+            String sql = "SELECT Nombre FROM Especialidades";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
 
-        cmbEspecialidad.setModel(model);
+            DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+            model.addElement("Especialidad");
+            
+            while (rs.next()) {
+                model.addElement(rs.getString("Especialidad"));
+            }
+            cmbEspecialidad.setModel(model);
+            cmbEspecialidad.setSelectedIndex(0);
 
         // Seleccionar la primera especialidad automáticamente
         if (model.getSize() > 0) {
@@ -513,7 +549,13 @@ public class AgendarCita extends javax.swing.JFrame {
     }
 
     private void buscarHorarios() {
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+
         String medico = (String) cmbMedico.getSelectedItem();
+        String cedulaMedico = obtenerCedulaPorNombreMedico(medico);
+        // id_doctor es nchar en la BD, no int
+        String id_doctor = cedulaMedico;
         java.util.Date fecha = dateChooser.getDate();
 
         // Validaciones iniciales
@@ -596,6 +638,69 @@ public class AgendarCita extends javax.swing.JFrame {
         // 5. Compara
         return digitoVerificadorCalculado == digitoVerificadorReal;
     }
+    
+    private void agendarCita(String cedula) throws SQLException{
+        ConexionBD conexion = new ConexionBD();
+        Connection conn = conexion.establecerConexion();
+        int id_Cita = generarNuevoIdCita(conn);
+        int id_paciente = Integer.parseInt(cedula);
+        Date fechaSelec = dateChooser.getDate(); // java.util.Date
+        Date fecha = new java.sql.Date(fechaSelec.getTime());
+        String motivo= "";
+        int id_tipo = 1;
+        
+        String nombreSeleccionado = (String) cmbMedico.getSelectedItem();
+        String cedulaMedico = obtenerCedulaPorNombreMedico(nombreSeleccionado);
+        int id_doctor = parseInt(cedulaMedico);
+        
+        int selectedRow = tablaHorarios.getSelectedRow();
+        String hora = (String) tablaHorarios.getValueAt(selectedRow, 0);
+
+        // Usamos un DateFormat para parsear el texto
+        SimpleDateFormat formatoHora = new SimpleDateFormat("HH:mm");
+        java.util.Date horaDate = null;
+        try {
+            horaDate = formatoHora.parse(hora);
+        } catch (ParseException ex) {
+            Logger.getLogger(AgendarCita.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // Convertimos a java.sql.Time
+        java.sql.Time horaSQL = new java.sql.Time(horaDate.getTime());
+
+        
+        if (conn == null) {
+            return;
+        }
+        
+        String sqlCita = "INSERT INTO CITA(id_cita, id_paciente, hora, "
+                + "fecha, motivo, id_doctor, id_tipo) VALUES (?,?,?,?,?,?,?)";
+        
+        try (PreparedStatement pstmtCita = conn.prepareStatement(sqlCita)) {
+            pstmtCita.setInt(1, id_Cita);
+            pstmtCita.setInt(2, id_paciente);
+            pstmtCita.setTime(3, horaSQL);
+            pstmtCita.setDate(4, (java.sql.Date) fecha);
+            pstmtCita.setString(5, motivo);
+            pstmtCita.setInt(6, id_doctor);
+            pstmtCita.setInt(7, id_tipo);
+            
+            if (pstmtCita.executeUpdate() == 0) {
+                throw new SQLException("No se pudo insertar la cita");
+            }
+        }
+    }
+    
+    private int generarNuevoIdCita(Connection conn) throws SQLException {
+        String sql = "SELECT MAX(ID_CITA) FROM CITA";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1) + 1;
+            }
+            return 1; // Si no hay citas, empezar con 1
+        }
+    }
 
     private boolean validarPacienteExiste(String cedula) {
         ConexionBD conexion = new ConexionBD();
@@ -665,6 +770,8 @@ public class AgendarCita extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> cmbEspecialidad;
     private javax.swing.JComboBox<String> cmbMedico;
     private com.toedter.calendar.JDateChooser dateChooser;
+    private javax.swing.JButton jButtonBuscarPac;
+    private javax.swing.JButton jButtonRegistrarPac;
     private javax.swing.JButton jButton_AgendarCita;
     private javax.swing.JButton jButton_BuscarHorarios;
     private javax.swing.JLabel jLabel1;
@@ -672,15 +779,14 @@ public class AgendarCita extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable tablaHorarios;
+    private javax.swing.JTextField txtApellidoPaciente;
     private javax.swing.JTextField txtCedulaPaciente;
     private javax.swing.JTextField txtNombrePaciente;
     // End of variables declaration//GEN-END:variables
