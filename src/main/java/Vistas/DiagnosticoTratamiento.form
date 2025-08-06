@@ -202,7 +202,7 @@
                                               </Group>
                                               <EmptySpace type="separate" max="-2" attributes="0"/>
                                               <Group type="103" groupAlignment="0" attributes="0">
-                                                  <Component id="jTfechafin" pref="158" max="32767" attributes="0"/>
+                                                  <Component id="jTfechafin" pref="180" max="32767" attributes="0"/>
                                                   <Component id="jThistorial" max="32767" attributes="0"/>
                                               </Group>
                                           </Group>
@@ -420,7 +420,7 @@
                           </Group>
                           <Component id="jScrollPane1" min="-2" pref="438" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="134" max="32767" attributes="0"/>
+                      <EmptySpace pref="156" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -550,8 +550,14 @@
                               <Component id="Result" alignment="0" pref="84" max="32767" attributes="0"/>
                               <Component id="estimado" alignment="0" max="32767" attributes="0"/>
                           </Group>
-                          <Component id="Id_tratamiento" alignment="0" min="-2" pref="85" max="-2" attributes="0"/>
                           <Component id="jScrollPane4" alignment="0" min="-2" pref="262" max="-2" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="Id_tratamiento" min="-2" pref="85" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="49" max="-2" attributes="0"/>
+                              <Component id="jLabel_IdReceta" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                              <Component id="jT_idRecetaTratamiento" min="-2" pref="120" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
@@ -561,7 +567,7 @@
                                       <Component id="jLabel18" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="0" attributes="0">
-                                      <EmptySpace min="-2" pref="54" max="-2" attributes="0"/>
+                                      <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
                                       <Group type="103" groupAlignment="1" attributes="0">
                                           <Component id="jLabel19" min="-2" max="-2" attributes="0"/>
                                           <Component id="jLabel20" alignment="1" min="-2" max="-2" attributes="0"/>
@@ -595,6 +601,8 @@
                           <Component id="Id_tratamiento" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="id_inter" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel18" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel_IdReceta" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jT_idRecetaTratamiento" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" pref="22" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -740,6 +748,13 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="GuardarTratamientoActionPerformed"/>
               </Events>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel_IdReceta">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="ID_Receta:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JTextField" name="jT_idRecetaTratamiento">
             </Component>
           </SubComponents>
         </Container>
